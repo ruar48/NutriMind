@@ -2,16 +2,21 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\Permission;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Services\CsvExport;
+use App\Services\StudentImport\ImportColumns;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class StudentImportTemplateController extends Controller
 {
     /**
-     * Handle the incoming request.
+     * Download the learner CSV template: the column headings and two example rows.
      */
-    public function __invoke(Request $request)
+    #[Authorize(Permission::ImportStudents)]
+    public function __invoke(CsvExport $csv): StreamedResponse
     {
-        //
+        return $csv->download('learner-import-template', ImportColumns::TEMPLATE_HEADERS, ImportColumns::TEMPLATE_EXAMPLE_ROWS);
     }
 }
