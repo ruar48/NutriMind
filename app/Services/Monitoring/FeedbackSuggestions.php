@@ -17,8 +17,8 @@ use Illuminate\Support\Str;
  * - Praise when the average score is at least 90 (Outstanding).
  * - Encouragement when the latest week with attempts averaged at least 5 points less than the week with attempts
  *   before it (within the summary's 8-week window).
- * - Guidance naming the weakest area: the learning module with the lowest average of best quiz percentages, or, without
- *   module-linked quizzes, the subject with the lowest average — when that average is below 85.
+ * - Guidance naming the weakest area: the learning module with the lowest average of best quiz percentages when it is
+ *   below 85, otherwise the subject with the lowest average when that is below 85.
  * - Concern when the average Did Not Meet Expectations (below 75).
  */
 final class FeedbackSuggestions

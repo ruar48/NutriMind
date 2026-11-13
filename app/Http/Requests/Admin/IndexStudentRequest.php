@@ -106,13 +106,11 @@ class IndexStudentRequest extends FormRequest
         $sort = $this->sort();
         $direction = $this->direction(self::SORTABLE[$sort]);
 
-        match ($sort) {
-            'points' => $query->orderBy($this->profileColumn('total_points'), $direction),
-            'last_active' => $query->orderBy($this->profileColumn('last_active_at'), $direction),
-            default => $query->orderBy('users.name', $direction),
+        return match ($sort) {
+            'points' => $query->orderBy($this->profileColumn('total_points'), $direction)->orderBy('users.name')->orderBy('users.id'),
+            'last_active' => $query->orderBy($this->profileColumn('last_active_at'), $direction)->orderBy('users.name')->orderBy('users.id'),
+            default => $query->orderBy('users.name', $direction)->orderBy('users.id', $direction),
         };
-
-        return $query->orderBy('users.name')->orderBy('users.id');
     }
 
     /**

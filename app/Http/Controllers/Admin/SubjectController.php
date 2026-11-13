@@ -12,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Middleware;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 /**
@@ -68,7 +69,7 @@ class SubjectController extends Controller
             'status' => $status,
             'statusOptions' => self::STATUS_FILTERS,
             'isFiltered' => $search !== '' || $status !== null,
-            'totalCount' => $isFiltered = Subject::query()->count(),
+            'totalCount' => Subject::query()->count(),
             'activeCount' => Subject::query()->active()->count(),
         ]);
     }
