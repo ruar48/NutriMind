@@ -94,7 +94,7 @@
                     @endif
                 </x-section>
 
-                <x-quiz.publish-checklist :quiz="$quiz" :checklist="$checklist" />
+                <x-quiz.publish-checklist :quiz="$quiz" :checklist="$checklist" :can-edit="$canUpdate" />
             @else
                 <x-alert variant="info" icon="lock" title="This quiz is {{ strtolower($quiz->status->label()) }}">
                     Its questions cannot change while learners can see it. In the builder you can move it back to draft if nobody took it yet, or duplicate it.

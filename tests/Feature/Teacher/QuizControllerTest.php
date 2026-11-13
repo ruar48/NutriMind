@@ -14,7 +14,6 @@ use App\Models\QuizQuestion;
 use App\Models\SchoolYear;
 use App\Models\Subject;
 use App\Models\User;
-use App\Policies\Concerns\AuthorizesAccess;
 use App\Policies\QuizPolicy;
 use App\Services\RolePermissions;
 use App\Services\Settings;
@@ -494,6 +493,35 @@ describe('show', function () {
         expect($countQueries())->toBe($few);
     });
 
+    it('offers one publish action once the checklist is complete', function () {
+        $subject = Subject::factory()->create();
+        $teacher = User::factory()->teaching($subject)->create();
+        $quiz = Quiz::factory()->reviewed()->for($teacher, 'teacher')->for($subject)->hasQuestions(1)->create(['grade_level' => GradeLevel::Five]);
+        $quiz->classrooms()->attach(Classroom::factory()->for($teacher, 'teacher')->for($subject)->create(['grade_level' => GradeLevel::Five]));
+
+        $response = $this->actingAs($teacher)->get(route('teacher.quizzes.show', $quiz));
+
+        $response->assertOk()
+            ->assertViewHas('checklist', ['hasQuestions' => true, 'hasClassroom' => true, 'isReviewed' => true, 'isReady' => true])
+            ->assertSee('data-publish-checklist="ready"', false);
+        expect(substr_count($response->getContent(), 'name="status" value="published"'))->toBe(1);
+    });
+
+    it('shows the builder read-only to a teacher without the quiz permission', function () {
+        $subject = Subject::factory()->create();
+        $teacher = User::factory()->teaching($subject)->create();
+        $quiz = Quiz::factory()->for($teacher, 'teacher')->for($subject)->hasQuestions(1)->create();
+        app(RolePermissions::class)->revoke(UserRole::Teacher, Permission::CreateQuizzes);
+
+        $this->actingAs($teacher)
+            ->get(route('teacher.quizzes.show', $quiz))
+            ->assertOk()
+            ->assertDontSee(route('teacher.quizzes.edit', $quiz))
+            ->assertDontSee(route('teacher.quizzes.questions.create', $quiz))
+            ->assertDontSee(route('teacher.quizzes.questions.edit', [$quiz, $quiz->questions->first()]))
+            ->assertDontSee(route('teacher.quizzes.status.update', $quiz));
+    });
+
     it('hides other teachers’ quizzes', function () {
         $quiz = Quiz::factory()->create();
 
@@ -546,6 +574,38 @@ describe('edit', function () {
             ->assertDontSee('name="subject_id"', false)
             ->assertDontSee('name="passing_score"', false)
             ->assertDontSee('name="shuffle_questions"', false);
+    });
+
+    it('keeps a classroom with attempts checked, disabled and submitted', function () {
+        $subject = Subject::factory()->create();
+        $teacher = User::factory()->teaching($subject)->create();
+        $quiz = Quiz::factory()->published()->for($teacher, 'teacher')->for($subject)->create(['grade_level' => GradeLevel::Five]);
+        $classroom = Classroom::factory()->for($teacher, 'teacher')->for($subject)->create(['grade_level' => GradeLevel::Five]);
+        $quiz->classrooms()->attach($classroom);
+        QuizAttempt::factory()->for($quiz)->for($classroom)->create();
+
+        $response = $this->actingAs($teacher)->get(route('teacher.quizzes.edit', $quiz));
+
+        $response->assertOk()
+            ->assertViewHas('attemptedClassroomIds', [$classroom->id])
+            ->assertSee('<input type="hidden" name="classroom_ids[]" value="'.$classroom->id.'">', false)
+            ->assertSeeText('Has learner attempts');
+        expect($response->getContent())
+            ->toMatch('#<input[^>]*name="classroom_ids\[\]"[^>]*value="'.$classroom->id.'"[^>]*\schecked(?=[\s/>])#')
+            ->toMatch('#<input[^>]*value="'.$classroom->id.'"[^>]*disabled[^>]*data-quiz-locked#');
+    });
+
+    it('groups the learning modules by subject and grade for the form filter', function () {
+        $subject = Subject::factory()->create(['name' => 'Health']);
+        $teacher = User::factory()->teaching($subject)->create();
+        $module = LearningModule::factory()->for($subject)->create(['grade_level' => GradeLevel::Six, 'title' => 'Food Safety Squad']);
+        $quiz = Quiz::factory()->for($teacher, 'teacher')->for($module, 'module')->create();
+
+        $this->actingAs($teacher)
+            ->get(route('teacher.quizzes.edit', $quiz))
+            ->assertOk()
+            ->assertSee('<optgroup label="Health · Grade 6" data-quiz-match-subject="'.$subject->id.'" data-quiz-match-grade="6">', false)
+            ->assertSee('<option value="'.$module->id.'" selected>Food Safety Squad', false);
     });
 
     it('hides other teachers’ quizzes', function () {

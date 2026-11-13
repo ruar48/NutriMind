@@ -16,6 +16,19 @@
     $isCreating = strtoupper($method) === 'POST';
     $classroomOptions = collect($classroomOptions)->all();
     $attemptOptions = collect($attemptOptions)->all();
+    $typeDescriptions = [
+        \App\Enums\FeedbackType::Praise->value => 'Celebrate a success or a strong effort.',
+        \App\Enums\FeedbackType::Encouragement->value => 'Motivate the learner after a setback.',
+        \App\Enums\FeedbackType::Guidance->value => 'Point to what to practice next.',
+        \App\Enums\FeedbackType::Concern->value => 'Flag a problem the family should know about.',
+    ];
+    $typeOptions = collect(\App\Enums\FeedbackType::cases())->map(fn (\App\Enums\FeedbackType $type): array => [
+        'value' => $type->value,
+        'label' => $type->label(),
+        'description' => $typeDescriptions[$type->value],
+        'icon' => $type->icon(),
+        'color' => $type->color(),
+    ])->all();
 @endphp
 
 <form id="feedback-form" method="POST" action="{{ $action }}" {{ $attributes->class('flex flex-col gap-8') }} data-submit-once>
@@ -30,7 +43,7 @@
     @endif
 
     <x-form.section title="Message" :description="'Write to '.$student->name.'. Keep it specific, kind and actionable.'">
-        <x-form.radio-cards name="type" label="Kind of feedback" :options="\App\Enums\FeedbackType::cases()" :value="$feedback->type" columns="2" required class="col-span-full" />
+        <x-form.radio-cards name="type" label="Kind of feedback" :options="$typeOptions" :value="$feedback->type" columns="2" required class="col-span-full" />
         <x-form.textarea name="message" label="Message" :value="$feedback->message" :max-length="\App\Http\Requests\Teacher\StoreFeedbackRequest::MESSAGE_MAX_LENGTH" rows="6" required class="col-span-full" />
     </x-form.section>
 

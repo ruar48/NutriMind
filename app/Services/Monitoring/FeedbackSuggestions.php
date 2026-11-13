@@ -61,6 +61,9 @@ final class FeedbackSuggestions
         ]));
     }
 
+    /**
+     * Suggest praise for an Outstanding average.
+     */
     private function praise(LearnerProgressSummary $summary, string $firstName): ?FeedbackSuggestion
     {
         if ($summary->averageScore === null || $summary->averageScore < self::PRAISE_FROM) {
@@ -77,6 +80,9 @@ final class FeedbackSuggestions
         );
     }
 
+    /**
+     * Suggest encouragement when the latest week with attempts averaged clearly less than the one before it.
+     */
     private function encouragement(LearnerProgressSummary $summary, string $firstName): ?FeedbackSuggestion
     {
         $weeks = array_values(array_filter($summary->weeklyScores, fn (array $week): bool => $week['average'] !== null));
@@ -103,6 +109,8 @@ final class FeedbackSuggestions
     }
 
     /**
+     * Suggest guidance that names the weakest module, or the weakest subject.
+     *
      * @param  list<int>  $subjectIds
      */
     private function guidance(LearnerProgressSummary $summary, array $subjectIds, string $firstName): ?FeedbackSuggestion
@@ -138,6 +146,9 @@ final class FeedbackSuggestions
         );
     }
 
+    /**
+     * Suggest a concern for an average that Did Not Meet Expectations.
+     */
     private function concern(LearnerProgressSummary $summary, string $firstName): ?FeedbackSuggestion
     {
         if ($summary->band !== PerformanceBand::DidNotMeetExpectations) {
@@ -193,11 +204,17 @@ final class FeedbackSuggestions
         return $module === null ? null : [$module, $weakest->first()];
     }
 
+    /**
+     * Build a suggestion whose message fits the feedback message limit.
+     */
     private function suggestion(FeedbackType $type, string $title, string $reason, string $message): FeedbackSuggestion
     {
         return new FeedbackSuggestion($type, $title, $reason, Str::limit($message, self::MESSAGE_LIMIT, ''));
     }
 
+    /**
+     * Get the first word of the learner's name.
+     */
     private function firstName(string $name): string
     {
         $firstWord = Str::of($name)->squish()->before(' ')->toString();
@@ -205,6 +222,9 @@ final class FeedbackSuggestions
         return $firstWord !== '' ? $firstWord : $name;
     }
 
+    /**
+     * Format a percentage with at most 1 decimal ("92.5%", "90%").
+     */
     private function percent(float $value): string
     {
         return rtrim(rtrim(number_format($value, 1), '0'), '.').'%';

@@ -1,10 +1,14 @@
 {{--
     "Ready to publish" checklist of a draft quiz: at least one question, at least one active classroom, reviewed
     since the last question change. checklist comes from QuizController::publishChecklist().
+    withPublish = false leaves out the Publish button (when the page header already offers it); canEdit = false hides
+    the links to the editing pages (the teacher may not change the quiz).
 --}}
 @props([
     'quiz',
     'checklist',
+    'withPublish' => true,
+    'canEdit' => true,
 ])
 
 @php
@@ -14,7 +18,7 @@
             'title' => 'Add at least one question',
             'done_text' => trans_choice(':count question added|:count questions added', $quiz->questions->count()),
             'todo_text' => 'Write a question or add one from the question bank.',
-            'action' => ['label' => 'Add question', 'url' => route('teacher.quizzes.questions.create', $quiz), 'icon' => 'plus'],
+            'action' => $canEdit ? ['label' => 'Add question', 'url' => route('teacher.quizzes.questions.create', $quiz), 'icon' => 'plus'] : null,
             'key' => 'questions',
         ],
         [
@@ -22,7 +26,7 @@
             'title' => 'Assign at least one classroom',
             'done_text' => trans_choice('Assigned to :count classroom|Assigned to :count classrooms', $quiz->classrooms->whereNull('archived_at')->count()),
             'todo_text' => 'Choose the classes that take this quiz in the quiz settings.',
-            'action' => ['label' => 'Edit settings', 'url' => route('teacher.quizzes.edit', $quiz), 'icon' => 'pencil'],
+            'action' => $canEdit ? ['label' => 'Edit settings', 'url' => route('teacher.quizzes.edit', $quiz), 'icon' => 'pencil'] : null,
             'key' => 'classrooms',
         ],
         [
@@ -61,7 +65,7 @@
                         'text-ink-600 dark:text-ink-300' => $step['done'],
                     ])>{{ $step['title'] }}</p>
                     <p class="mt-0.5 text-xs text-ink-500 dark:text-ink-400">{{ $step['done'] ? $step['done_text'] : $step['todo_text'] }}</p>
-                    @if (! $step['done'])
+                    @if (! $step['done'] && $step['action'] !== null)
                         <x-button variant="soft" size="xs" :icon="$step['action']['icon']" :href="$step['action']['url']" class="mt-2">{{ $step['action']['label'] }}</x-button>
                     @endif
                 </div>
@@ -69,7 +73,7 @@
         @endforeach
     </ol>
 
-    @if ($checklist['isReady'])
+    @if ($checklist['isReady'] && $withPublish && $canEdit)
         <x-slot:footer>
             <div class="flex justify-end">
                 <x-quiz.status-actions :quiz="$quiz" ready only="primary" />

@@ -298,6 +298,25 @@ describe('store', function () {
         expect(app(QuestionMedia::class)->videoMaxKilobytes())->toBe(min(20480, $phpLimitKilobytes));
     });
 
+    it('shows the form again with the typed values and the error', function () {
+        [$teacher, $quiz] = quizQuestionDraft();
+        $createUrl = route('teacher.quizzes.questions.create', $quiz);
+
+        $this->actingAs($teacher)
+            ->from($createUrl)
+            ->followingRedirects()
+            ->post(route('teacher.quizzes.questions.store', $quiz), quizQuestionPayload([
+                'prompt' => 'Which food helps us grow?',
+                'choices' => ['Fish', '', 'Candy'],
+                'correct_answer' => '2',
+            ]))
+            ->assertOk()
+            ->assertSeeText('Which food helps us grow?')
+            ->assertSee('value="Fish"', false)
+            ->assertSee('value="Candy"', false)
+            ->assertSeeText('Fill in choice B or remove it.');
+    });
+
     it('refuses an uploaded video together with a video link', function () {
         Storage::fake('public');
         [$teacher, $quiz] = quizQuestionDraft();

@@ -36,6 +36,9 @@
         @csrf
         @if ($isEditing)
             @method('PUT')
+        @else
+            {{-- Pressing Enter in a field submits with the first submit button: keep that the plain "Add question". --}}
+            <button type="submit" class="sr-only" tabindex="-1" aria-hidden="true">Add question</button>
         @endif
 
         <x-quiz.question-fields :question="$question" :type="$type" :type-urls="$typeUrls" :media-limits="$mediaLimits">

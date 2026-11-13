@@ -150,8 +150,8 @@
                             <div class="flex flex-col items-start gap-1">
                                 <x-monitoring.time :value="$attempt->submitted_at" />
                                 @if ($attempt->is_offline)
-                                    <x-badge color="sky" icon="wifi-off" size="sm" :title="$attempt->synced_at ? 'Synced '.$attempt->synced_at->format('M j, Y g:i A') : 'Not synced yet'">
-                                        Offline · {{ $attempt->synced_at ? 'synced '.$attempt->synced_at->format('M j, g:i A') : 'not synced' }}
+                                    <x-badge color="sky" icon="wifi-off" size="sm">
+                                        Offline · {{ $attempt->synced_at ? 'synced '.$attempt->synced_at->format('M j, Y g:i A') : 'not synced yet' }}
                                     </x-badge>
                                 @endif
                             </div>

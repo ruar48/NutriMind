@@ -107,6 +107,8 @@ final class FeedbackTargets
     }
 
     /**
+     * Query the teacher's classrooms (in subjects still assigned to them) the learner is enrolled in.
+     *
      * @return BelongsToMany<Classroom, User>
      */
     private function classroomsQuery(User $teacher, User $student): BelongsToMany
@@ -115,6 +117,8 @@ final class FeedbackTargets
     }
 
     /**
+     * Query the learner's submitted attempts at the teacher's quizzes in subjects still assigned to them.
+     *
      * @return HasMany<QuizAttempt, User>
      */
     private function attemptsQuery(User $teacher, User $student): HasMany

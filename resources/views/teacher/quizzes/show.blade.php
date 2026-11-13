@@ -140,7 +140,7 @@
 
         <aside class="flex min-w-0 flex-col gap-6">
             @if ($quiz->isDraft())
-                <x-quiz.publish-checklist :quiz="$quiz" :checklist="$checklist" />
+                <x-quiz.publish-checklist :quiz="$quiz" :checklist="$checklist" :with-publish="false" :can-edit="$canUpdate" />
             @else
                 <x-section title="Learner results" :description="trans_choice(':count submitted attempt so far|:count submitted attempts so far', $quiz->submitted_attempts_count)" icon="chart-column" color="grape">
                     <p class="text-sm text-ink-600 dark:text-ink-300">See scores, the questions learners miss most, and who has not taken the quiz yet.</p>
