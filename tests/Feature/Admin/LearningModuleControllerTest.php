@@ -322,9 +322,10 @@ describe('show', function () {
         $mission = Mission::factory()->for($module, 'module')->create(['title' => 'Rainbow Plate']);
         MissionProgress::factory()->for($mission)->completed()->create();
         MissionProgress::factory()->for($mission)->inProgress()->create();
-        $following = LessonPlan::factory()->for($module, 'module')->create(['title' => 'Planning a Balanced Plate']);
+        $following = LessonPlan::factory()->for($module, 'module')->create(['title' => 'Planning a Balanced Plate', 'competency_code' => 'H5N-IB-2']);
         $following->activities()->attach($played);
         LessonPlan::factory()->create(['subject_id' => $module->subject_id, 'grade_level' => GradeLevel::Five, 'competency_code' => 'h5n-ib-2']);
+        LessonPlan::factory()->create(['grade_level' => GradeLevel::Five, 'competency_code' => 'H5N-IB-2']);
         Quiz::factory()->for($module, 'module')->create();
 
         $response = $this->actingAs(User::factory()->admin()->create())->get(route('admin.modules.show', $module));

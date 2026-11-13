@@ -27,7 +27,7 @@
             </x-slot:head>
 
             @foreach ($rows as $row)
-                <x-table.row data-report-row>
+                <x-table.row data-report-row="{{ $loop->iteration }}">
                     @foreach ($report->columns as $column)
                         <x-table.td
                             :align="$column->align()"

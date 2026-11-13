@@ -69,7 +69,7 @@ class PeriodOptions
 
         foreach ($terms as $term) {
             if ($term->isNot($currentTerm)) {
-                $options['term-'.$term->getKey()] = $term->name.' · '.$term->starts_on->format('M j').' – '.$term->ends_on->format('M j, Y');
+                $options['term-'.$term->getKey()] = $term->name.' · '.AnalyticsPeriod::between($term->starts_on, $term->ends_on, 'term')->rangeText();
             }
         }
 

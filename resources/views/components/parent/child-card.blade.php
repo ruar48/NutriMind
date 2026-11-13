@@ -109,15 +109,20 @@
                 </div>
             </div>
 
-            <p class="flex items-center gap-1.5 text-sm text-ink-600 dark:text-ink-300">
-                <x-icon name="gamepad-2" class="size-4 text-ink-400 dark:text-ink-500" />
-                @if ($lastActiveAt)
-                    Last played
-                    <time datetime="{{ $lastActiveAt->toIso8601String() }}" title="{{ $lastActiveAt->format('M j, Y g:i A') }}" class="font-medium text-ink-900 dark:text-ink-100">{{ $lastActiveAt->diffForHumans() }}</time>
-                @else
-                    <span>Has not played NutriMind yet</span>
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <p class="flex items-center gap-1.5 text-sm text-ink-600 dark:text-ink-300">
+                    <x-icon name="gamepad-2" class="size-4 text-ink-400 dark:text-ink-500" />
+                    @if ($lastActiveAt)
+                        Last played
+                        <time datetime="{{ $lastActiveAt->toIso8601String() }}" title="{{ $lastActiveAt->format('M j, Y g:i A') }}" class="font-medium text-ink-900 dark:text-ink-100">{{ $lastActiveAt->diffForHumans() }}</time>
+                    @else
+                        <span>Has not played NutriMind yet</span>
+                    @endif
+                </p>
+                @if ($stats['syncOverdue'] ?? false)
+                    <x-badge color="sun" icon="wifi-off" size="sm" title="Progress played offline appears once the game reconnects to the internet.">Sync overdue</x-badge>
                 @endif
-            </p>
+            </div>
         @endif
 
         @if ($feedback)

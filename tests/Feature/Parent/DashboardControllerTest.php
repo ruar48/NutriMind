@@ -125,6 +125,19 @@ it('shows a card with the progress of each linked child only', function () {
     });
 });
 
+it('flags a child whose game has not synced for more than a week', function () {
+    $this->travelTo(CarbonImmutable::parse('2026-11-13 10:00:00'));
+    $stale = dashboardChild('Carlo Manalastas', GradeLevel::Five, ['last_active_at' => now()->subDays(10), 'last_synced_at' => now()->subDays(8)]);
+    $fresh = dashboardChild('Sofia Navarro', GradeLevel::Five, ['last_active_at' => now()->subDay(), 'last_synced_at' => now()->subDay()]);
+    $parent = User::factory()->parent()->guardianOf($stale)->guardianOf($fresh)->create();
+
+    $response = $this->actingAs($parent)->get(route('parent.dashboard'));
+
+    $response->assertOk()->assertSeeTextInOrder(['Carlo Manalastas', 'Sync overdue', 'Sofia Navarro']);
+    $response->assertViewHas('cards', fn (array $cards): bool => $cards[0]['stats']['syncOverdue'] === true
+        && $cards[1]['stats']['syncOverdue'] === false);
+});
+
 it('counts this week’s quizzes, rewards and missions since Monday', function () {
     $this->travelTo(CarbonImmutable::parse('2026-11-13 10:00:00'));
     $sofia = dashboardChild('Sofia Navarro', GradeLevel::Five);

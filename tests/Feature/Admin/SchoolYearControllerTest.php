@@ -143,14 +143,15 @@ describe('create', function () {
     it('shows the form with four quarters selected and activation off', function () {
         SchoolYear::factory()->active()->create(['name' => '2026–2027']);
 
-        $this->actingAs($this->admin)
-            ->get(route('admin.school-years.create'))
-            ->assertOk()
+        $response = $this->actingAs($this->admin)->get(route('admin.school-years.create'));
+
+        $response->assertOk()
             ->assertViewIs('admin.school-years.form')
             ->assertSee('action="'.route('admin.school-years.store').'"', false)
-            ->assertMatchesRegularExpression('#<input[^>]*name="create_quarters"[^>]*value="1"[^>]*\schecked(?=[\s/>])#')
-            ->assertDoesntMatchRegularExpression('#<input[^>]*name="make_active"[^>]*value="1"[^>]*\schecked(?=[\s/>])#')
             ->assertSeeText('2026–2027 stops being active.');
+        expect($response->getContent())
+            ->toMatch('#<input[^>]*name="create_quarters"[^>]*value="1"[^>]*\schecked(?=[\s/>])#')
+            ->not->toMatch('#<input[^>]*name="make_active"[^>]*value="1"[^>]*\schecked(?=[\s/>])#');
     });
 
     it('forbids every other role', function (string $role) {
@@ -404,14 +405,14 @@ describe('edit', function () {
     it('shows the current values and offers quarters only while there are none', function () {
         $schoolYear = SchoolYear::factory()->create(['name' => '2027–2028', 'starts_on' => '2027-06-14', 'ends_on' => '2028-04-14']);
 
-        $this->actingAs($this->admin)
-            ->get(route('admin.school-years.edit', [$schoolYear, 'quarters' => 1]))
-            ->assertOk()
+        $response = $this->actingAs($this->admin)->get(route('admin.school-years.edit', [$schoolYear, 'quarters' => 1]));
+
+        $response->assertOk()
             ->assertSee('value="2027–2028"', false)
             ->assertSee('value="2027-06-14"', false)
             ->assertSee('value="2028-04-14"', false)
-            ->assertMatchesRegularExpression('#<input[^>]*name="create_quarters"[^>]*value="1"[^>]*\schecked(?=[\s/>])#')
             ->assertSee('name="make_active"', false);
+        expect($response->getContent())->toMatch('#<input[^>]*name="create_quarters"[^>]*value="1"[^>]*\schecked(?=[\s/>])#');
 
         AcademicTerm::factory()->for($schoolYear)->create();
 

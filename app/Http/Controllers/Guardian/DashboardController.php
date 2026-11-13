@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 /**
@@ -117,9 +118,9 @@ class DashboardController extends Controller
             $hour < 18 => 'Good afternoon',
             default => 'Good evening',
         };
-        $firstName = strtok(trim((string) $parent->name), ' ');
+        $firstName = Str::of((string) $parent->name)->squish()->before(' ')->toString();
 
-        return $firstName === false ? $timeOfDay : $timeOfDay.', '.$firstName;
+        return $firstName === '' ? $timeOfDay : $timeOfDay.', '.$firstName;
     }
 
     /**

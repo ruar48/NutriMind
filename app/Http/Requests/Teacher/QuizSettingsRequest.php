@@ -166,20 +166,32 @@ abstract class QuizSettingsRequest extends FormRequest
     public function quizAttributes(): array
     {
         $validated = $this->validated();
+        $integerOrNull = fn (string $key): ?int => isset($validated[$key]) ? (int) $validated[$key] : null;
 
-        return [
+        $attributes = [
             'title' => $validated['title'],
-            'subject_id' => (int) $validated['subject_id'],
-            'grade_level' => GradeLevel::from((int) $validated['grade_level']),
-            'learning_module_id' => isset($validated['learning_module_id']) ? (int) $validated['learning_module_id'] : null,
-            'academic_term_id' => isset($validated['academic_term_id']) ? (int) $validated['academic_term_id'] : null,
+            'learning_module_id' => $integerOrNull('learning_module_id'),
+            'academic_term_id' => $integerOrNull('academic_term_id'),
             'instructions' => $validated['instructions'] ?? null,
-            'time_limit_minutes' => isset($validated['time_limit_minutes']) ? (int) $validated['time_limit_minutes'] : null,
-            'passing_score' => (int) $validated['passing_score'],
-            'max_attempts' => isset($validated['max_attempts']) ? (int) $validated['max_attempts'] : null,
+            'time_limit_minutes' => $integerOrNull('time_limit_minutes'),
+            'max_attempts' => $integerOrNull('max_attempts'),
             'shuffle_questions' => $this->boolean('shuffle_questions'),
             'show_correct_answers' => $this->boolean('show_correct_answers'),
         ];
+
+        if (isset($validated['subject_id'])) {
+            $attributes['subject_id'] = (int) $validated['subject_id'];
+        }
+
+        if (isset($validated['grade_level'])) {
+            $attributes['grade_level'] = GradeLevel::from((int) $validated['grade_level']);
+        }
+
+        if (isset($validated['passing_score'])) {
+            $attributes['passing_score'] = (int) $validated['passing_score'];
+        }
+
+        return $attributes;
     }
 
     /**

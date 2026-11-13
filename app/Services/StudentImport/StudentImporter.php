@@ -85,6 +85,8 @@ class StudentImporter
                     continue;
                 }
 
+                $credentials[$row->number()] ??= [];
+
                 $parent = match ($plan->action) {
                     GuardianAction::CreateAccount => $parentsByEmail[$plan->email] = $this->createParent($plan, $credentials[$row->number()]),
                     GuardianAction::LinkCreated => $parentsByEmail[$plan->email] ?? throw new LogicException('The parent account of row '.$plan->sourceRow.' was not created.'),

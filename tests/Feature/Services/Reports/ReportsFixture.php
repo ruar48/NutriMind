@@ -11,6 +11,10 @@ use App\Models\Quiz;
 use App\Models\QuizAttempt;
 use App\Models\Subject;
 use App\Models\User;
+use App\Services\Reports\Report;
+use App\Services\Reports\ReportColumn;
+use App\Services\Reports\ReportRow;
+use App\Services\Reports\ReportStat;
 use Carbon\CarbonImmutable;
 
 /**
@@ -124,6 +128,30 @@ final class ReportsFixture
             $healthyPlate, $digestion, $foodGroups, $snackDraft, $oldAssessment,
             $rainbowPlate, $bodyBuilders, $waterWarrior, $oldQuest, $hiddenDraft,
         );
+    }
+
+    /**
+     * Get every row of a report as its displayed texts keyed by column key.
+     *
+     * @return list<array<string, string>>
+     */
+    public static function texts(Report $report): array
+    {
+        return $report->rows
+            ->map(fn (ReportRow $row): array => collect($report->columns)
+                ->mapWithKeys(fn (ReportColumn $column): array => [$column->key => $column->display($row)])
+                ->all())
+            ->all();
+    }
+
+    /**
+     * Get the displayed summary tiles of a report, label => value.
+     *
+     * @return array<string, string>
+     */
+    public static function summary(Report $report): array
+    {
+        return collect($report->summary)->mapWithKeys(fn (ReportStat $stat): array => [$stat->label => $stat->value])->all();
     }
 
     /**
