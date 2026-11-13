@@ -20,7 +20,7 @@
     $lastActiveAt = $stats['lastActiveAt'] ?? null;
 @endphp
 
-<x-card padding="none" {{ $attributes }} data-child-card="{{ $student->getKey() }}">
+<x-card padding="none" {{ $attributes->class(['flex! flex-col [&>:last-child]:mt-auto']) }} data-child-card="{{ $student->getKey() }}">
     <div class="flex flex-col gap-5 p-5 sm:p-6">
         <div class="flex min-w-0 items-start gap-4">
             <x-avatar :name="$student->name" size="lg" />
@@ -96,7 +96,7 @@
                     </x-progress-ring>
                     <span class="text-[11px] leading-tight text-ink-500 dark:text-ink-400">
                         Average
-                        <span class="block font-medium text-ink-700 dark:text-ink-200">{{ $averageScore === null ? 'No quizzes yet' : $band->shortLabel() }}</span>
+                        <span class="block font-medium text-ink-700 dark:text-ink-200">{{ $averageScore === null ? 'No quizzes yet' : $band->label() }}</span>
                     </span>
                 </div>
                 <div class="flex flex-col items-center justify-center gap-1 text-center">

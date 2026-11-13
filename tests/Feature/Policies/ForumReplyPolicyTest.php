@@ -87,6 +87,12 @@ describe('report', function () {
         expect(Gate::forUser(User::factory()->parent()->create())->inspect('report', $reply))->toEqual(Response::denyAsNotFound());
     });
 
+    it('reports a hidden reply as missing', function () {
+        $reply = ForumReply::factory()->hidden()->create();
+
+        expect(Gate::forUser(User::factory()->parent()->create())->inspect('report', $reply))->toEqual(Response::denyAsNotFound());
+    });
+
     it('denies teachers and parents while the forum is turned off', function () {
         $reply = ForumReply::factory()->create();
         app(Settings::class)->set('forum_enabled', false);

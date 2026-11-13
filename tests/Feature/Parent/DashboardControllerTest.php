@@ -109,6 +109,7 @@ it('shows a card with the progress of each linked child only', function () {
         ->assertDontSeeText('Rosal')
         ->assertSeeText('Grade 6 · Not enrolled in a class yet')
         ->assertSeeText('Has not played NutriMind yet')
+        ->assertSeeTextInOrder(['Average', 'Fairly Satisfactory'])
         ->assertSee('href="'.route('parent.children.show', $sofia).'"', false);
     $response->assertViewHas('cards', function (array $cards) use ($sofia, $miguel): bool {
         $byChild = collect($cards)->keyBy(fn (array $card): int => $card['student']->getKey());

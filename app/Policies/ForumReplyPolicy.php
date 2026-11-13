@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\ForumContentStatus;
 use App\Models\ForumReply;
 use App\Models\User;
 use App\Policies\Concerns\AuthorizesAccess;
@@ -62,12 +63,16 @@ class ForumReplyPolicy
     }
 
     /**
-     * Determine whether the user can report the reply: anyone who can open its thread, except its author.
+     * Determine whether the user can report the reply: anyone who can open its thread, except its author. A reply
+     * that is not published (hidden by a moderator) is reported as missing.
      */
     public function report(User $user, ForumReply $reply): Response
     {
         return $this->every(
             fn (): Response => Gate::forUser($user)->inspect('view', $reply->thread),
+            fn (): Response => $reply->status === ForumContentStatus::Published
+                ? Response::allow()
+                : Response::denyAsNotFound(),
             fn (): Response => $this->isOwner($user, $reply->author_id)
                 ? Response::deny(ForumThreadPolicy::OWN_CONTENT_MESSAGE)
                 : Response::allow(),

@@ -58,8 +58,8 @@
         </x-slot:actions>
     </x-page-header>
 
-    <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <div class="flex min-w-0 flex-col gap-6 xl:col-span-2">
+    <div class="grid grid-cols-1 gap-6 2xl:grid-cols-3">
+        <div class="flex min-w-0 flex-col gap-6 2xl:col-span-2">
             <x-section
                 title="Activities"
                 :description="$activities->isEmpty() ? 'Learners play them in this order.' : $publishedActivities.' of '.$activities->count().' published · learners play them in this order'"

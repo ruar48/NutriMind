@@ -139,6 +139,16 @@ it('returns 404 for a reply in a thread the reporter cannot see', function () {
     $this->assertDatabaseCount('forum_reports', 0);
 });
 
+it('returns 404 for a hidden reply in a published thread', function () {
+    $reply = ForumReply::factory()->hidden()->create();
+
+    $this->actingAs(User::factory()->parent()->create())
+        ->post(route('forum.reports.store'), ['forum_thread_id' => $reply->forum_thread_id, 'forum_reply_id' => $reply->id, 'reason' => 'spam'])
+        ->assertNotFound();
+
+    $this->assertDatabaseCount('forum_reports', 0);
+});
+
 it('rejects a reply that belongs to another thread', function () {
     $thread = ForumThread::factory()->create();
     $otherReply = ForumReply::factory()->create();

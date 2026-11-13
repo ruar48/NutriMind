@@ -59,7 +59,7 @@
             </header>
 
             <main id="content">
-                <section class="mx-auto grid max-w-7xl items-center gap-12 px-4 pt-8 pb-20 sm:px-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:pt-14 lg:pb-28">
+                <section class="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 pt-8 pb-20 sm:px-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:pt-14 lg:pb-28">
                     <div data-animate>
                         <p class="inline-flex max-w-full items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-leaf-800 shadow-card ring-1 ring-leaf-600/15 dark:bg-white/5 dark:text-leaf-200 dark:ring-leaf-400/20">
                             <x-icon name="sparkles" class="size-3.5 text-sun-500" />
@@ -90,7 +90,7 @@
                                 <div class="absolute -bottom-24 left-10 size-64 rounded-full bg-sun-300/30 blur-3xl"></div>
                                 <div class="absolute inset-0 bg-[radial-gradient(rgb(255_255_255/0.08)_1px,transparent_1px)] bg-size-[18px_18px]"></div>
                             </div>
-                            <x-illustration name="hero-produce" label="A bowl of fresh produce with game coins and sparkles" class="relative mx-auto h-64 w-auto text-white/90 sm:h-72" />
+                            <x-illustration name="hero-produce" label="A bowl of fresh produce with game coins and sparkles" class="relative mx-auto h-64 w-auto max-w-full text-white/90 sm:h-72" />
                         </div>
 
                         <div class="absolute -bottom-8 -left-2 w-64 rounded-2xl bg-white p-4 shadow-lift ring-1 ring-ink-900/5 sm:-left-8 dark:bg-ink-900 dark:ring-white/10" aria-hidden="true">

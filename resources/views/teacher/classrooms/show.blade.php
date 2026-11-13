@@ -99,8 +99,8 @@
         <x-tab :href="route('teacher.classrooms.show', [$classroom, 'tab' => 'overview'])" :active="$tab === 'overview'" icon="chart-line">Overview</x-tab>
     </x-tabs>
 
-    <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <div class="flex min-w-0 flex-col gap-6 xl:col-span-2">
+    <div @class(['grid grid-cols-1 gap-6', '2xl:grid-cols-3' => $tab === 'learners', 'xl:grid-cols-3' => $tab !== 'learners'])>
+        <div @class(['flex min-w-0 flex-col gap-6', '2xl:col-span-2' => $tab === 'learners', 'xl:col-span-2' => $tab !== 'learners'])>
             @if ($tab === 'learners')
                 <x-classrooms.roster
                     :classroom="$classroom"
@@ -116,7 +116,7 @@
             @endif
         </div>
 
-        <aside class="flex min-w-0 flex-col gap-6" aria-label="Classroom details">
+        <aside @class(['min-w-0 gap-6', 'grid lg:grid-cols-2 lg:items-start 2xl:flex 2xl:flex-col 2xl:items-stretch' => $tab === 'learners', 'flex flex-col' => $tab !== 'learners']) aria-label="Classroom details">
             <x-card data-animate style="--stagger: 1">
                 <x-classrooms.class-code :code="$classroom->class_code" size="lg" />
                 <p class="mt-3 flex items-start gap-2 text-sm text-ink-600 dark:text-ink-300">
