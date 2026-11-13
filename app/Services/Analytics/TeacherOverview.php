@@ -13,6 +13,7 @@ use Carbon\WeekDay;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection as BaseCollection;
 use Illuminate\Support\Facades\DB;
 
@@ -100,7 +101,7 @@ class TeacherOverview
 
         $submitted = QuizAttempt::query()->toBase()
             ->join('users', 'users.id', '=', 'quiz_attempts.student_id')
-            ->join('classroom_student', function ($join): void {
+            ->join('classroom_student', function (JoinClause $join): void {
                 $join->on('classroom_student.student_id', '=', 'quiz_attempts.student_id')
                     ->on('classroom_student.classroom_id', '=', 'quiz_attempts.classroom_id');
             })

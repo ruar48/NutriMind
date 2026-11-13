@@ -26,7 +26,7 @@
                         {{ $user->isStudent() ? 'Easy to type, like “mango-4821”.' : 'Twelve letters and digits.' }} It is shown to you once, ready to hand over.
                     </p>
                 </div>
-                <x-people.password-dialog :user="$user" button-variant="secondary" button="Generate password" class="shrink-0" />
+                <x-people.password-dialog :user="$user" button-variant="secondary" button="Generate password" />
             </div>
 
             <x-divider label="or set one yourself" />

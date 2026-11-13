@@ -101,7 +101,7 @@
                                 <x-table.td align="right">
                                     <x-dropdown variant="icon" icon="ellipsis-vertical" :label="'Actions for '.$activity->title">
                                         <x-dropdown.item :href="route('admin.activities.edit', $activity)" icon="pencil">Edit</x-dropdown.item>
-                                        @if ($activity->content_url)
+                                        @if (\Illuminate\Support\Str::startsWith((string) $activity->content_url, ['https://', 'http://']))
                                             <x-dropdown.item :href="$activity->content_url" icon="external-link" target="_blank" rel="noopener noreferrer">Open content link</x-dropdown.item>
                                         @endif
                                         <x-dropdown.divider />

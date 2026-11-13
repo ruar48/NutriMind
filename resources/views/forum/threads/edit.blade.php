@@ -19,5 +19,6 @@
         :cancel="route('forum.threads.show', $thread)"
         submit="Save changes"
         submit-icon="check"
+        :note="$thread->status === \App\Enums\ForumContentStatus::Published ? 'Readers see your changes right away.' : 'Only you and the moderators can see this thread.'"
     />
 </x-layouts.app>

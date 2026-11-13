@@ -6,7 +6,8 @@
     'cancel',
     'submit',
     'submitIcon' => 'send',
-    'requiresApproval' => false,
+    'note',
+    'noteIcon' => 'info',
 ])
 
 <form method="POST" action="{{ $action }}" {{ $attributes->class('flex flex-col gap-8') }} data-submit-once data-animate style="--stagger: 1">
@@ -40,12 +41,7 @@
     </x-form.section>
 
     <x-form.actions :cancel="$cancel" :submit="$submit" :submit-icon="$submitIcon">
-        @if ($requiresApproval)
-            <x-icon name="clock" class="size-4" />
-            A moderator reviews new threads before they appear in the forum.
-        @else
-            <x-icon name="info" class="size-4" />
-            Teachers, parents and administrators can read and reply to your thread.
-        @endif
+        <x-icon :name="$noteIcon" class="size-4" />
+        {{ $note }}
     </x-form.actions>
 </form>

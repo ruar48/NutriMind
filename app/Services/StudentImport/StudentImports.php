@@ -7,6 +7,7 @@ use App\Models\SchoolYear;
 use App\Models\User;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -19,6 +20,11 @@ class StudentImports
      * How long a commit may hold its lock, in seconds (generous: large imports hash many passwords).
      */
     private const LOCK_SECONDS = 900;
+
+    /**
+     * How many preview rows one page shows.
+     */
+    public const ROWS_PER_PAGE = 25;
 
     public function __construct(
         private PendingImports $pending,
@@ -155,6 +161,26 @@ class StudentImports
         } finally {
             $lock->release();
         }
+    }
+
+    /**
+     * Get one page of the preview's rows with the status (every row when null), keeping the query string.
+     *
+     * @return LengthAwarePaginator<int, PreviewRow>
+     */
+    public function paginateRows(ImportPreview $preview, ?ImportRowStatus $status): LengthAwarePaginator
+    {
+        $rows = $preview->rowsWith($status);
+        $lastPage = max(1, (int) ceil(count($rows) / self::ROWS_PER_PAGE));
+        $page = min(LengthAwarePaginator::resolveCurrentPage(), $lastPage);
+
+        return (new LengthAwarePaginator(
+            array_slice($rows, ($page - 1) * self::ROWS_PER_PAGE, self::ROWS_PER_PAGE),
+            count($rows),
+            self::ROWS_PER_PAGE,
+            $page,
+            ['path' => LengthAwarePaginator::resolveCurrentPath()],
+        ))->withQueryString();
     }
 
     /**

@@ -12,6 +12,13 @@ use Illuminate\Support\Str;
 final readonly class ImportResult
 {
     /**
+     * The headings of the one-time sign-in details CSV.
+     *
+     * @var list<string>
+     */
+    public const CREDENTIALS_HEADINGS = ['Name', 'Account', 'Username or email', 'Password', 'Signs in to'];
+
+    /**
      * @param  int  $created  New learner accounts.
      * @param  int  $enrolled  Existing learners enrolled in the classroom.
      * @param  int  $skipped  Rows skipped.
@@ -51,6 +58,23 @@ final readonly class ImportResult
             'username' => $account['username'],
             'password' => $account['password'],
         ], $this->credentials);
+    }
+
+    /**
+     * Turn stored sign-in details into the rows of the sign-in details CSV, in CREDENTIALS_HEADINGS order.
+     *
+     * @param  list<array{name: string, username: string, password: string, role: UserRole}>  $credentials
+     * @return list<list<string>>
+     */
+    public static function credentialsCsvRows(array $credentials): array
+    {
+        return array_map(fn (array $account): array => [
+            $account['name'],
+            $account['role']->label(),
+            $account['username'],
+            $account['password'],
+            $account['role']->portalLabel(),
+        ], $credentials);
     }
 
     /**

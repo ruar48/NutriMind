@@ -30,7 +30,8 @@
             :action="route('forum.threads.store')"
             :cancel="route('forum.index')"
             submit="Post thread"
-            :requires-approval="$requiresApproval"
+            :note="$requiresApproval ? 'A moderator reviews new threads before they appear in the forum.' : 'Teachers, parents and administrators can read and reply to your thread.'"
+            :note-icon="$requiresApproval ? 'clock' : 'info'"
         />
     @endif
 </x-layouts.app>
