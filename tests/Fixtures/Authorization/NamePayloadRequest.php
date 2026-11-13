@@ -8,7 +8,7 @@ use Illuminate\Foundation\Http\FormRequest;
 /**
  * Test-only Form Request that follows the convention: authorization lives in #[Authorize] on the action.
  */
-class RenameClassroomRequest extends FormRequest
+class NamePayloadRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

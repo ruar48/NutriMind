@@ -32,7 +32,7 @@ class QuizAttemptSeeder extends Seeder
     /**
      * The share of attempts taken offline and synced later.
      */
-    private const OFFLINE_SHARE = 0.11;
+    private const OFFLINE_SHARE = 0.1;
 
     /**
      * How much easier or harder each question difficulty is than the learner's ability.
@@ -91,7 +91,8 @@ class QuizAttemptSeeder extends Seeder
             ->whereIn('quiz_id', $quizzes->modelKeys())
             ->orderBy('quiz_id')
             ->orderBy('classroom_id')
-            ->get(['quiz_id', 'classroom_id', 'available_from', 'due_at']);
+            ->get(['quiz_id', 'classroom_id', 'available_from', 'due_at'])
+            ->groupBy('quiz_id');
         $enrollments = (new Classroom)->students()->newPivotStatement()
             ->orderBy('classroom_id')
             ->orderBy('student_id')
@@ -104,22 +105,20 @@ class QuizAttemptSeeder extends Seeder
             $quizAdjustments[$quiz->id] = $this->random->between(-0.04, 0.03) - ($quiz->learning_module_id === null ? 0.02 : 0.0);
         }
 
-        $attempts = [];
+        foreach ($quizzes as $quiz) {
+            $attempts = [];
 
-        foreach ($assignments as $assignment) {
-            $quiz = $quizzes[$assignment->quiz_id];
-
-            foreach ($enrollments[$assignment->classroom_id] ?? [] as $enrollment) {
-                array_push($attempts, ...$this->attemptsOf(
-                    $quiz, $questions[$quiz->id], $profiles[$enrollment->student_id], (int) $assignment->classroom_id,
-                    (int) $enrollment->student_id, $assignment, DemoClock::at($enrollment->enrolled_at), $quizAdjustments[$quiz->id],
-                ));
+            foreach ($assignments[$quiz->id] ?? [] as $assignment) {
+                foreach ($enrollments[$assignment->classroom_id] ?? [] as $enrollment) {
+                    array_push($attempts, ...$this->attemptsOf(
+                        $quiz, $questions[$quiz->id], $profiles[$enrollment->student_id], (int) $assignment->classroom_id,
+                        (int) $enrollment->student_id, $assignment, DemoClock::at($enrollment->enrolled_at), $quizAdjustments[$quiz->id],
+                    ));
+                }
             }
+
+            $this->seedQuizAttempts($quiz, $attempts);
         }
-
-        BulkInsert::models(QuizAttempt::class, array_column($attempts, 'row'));
-
-        $this->seedAnswers($attempts);
     }
 
     /**
@@ -395,22 +394,28 @@ class QuizAttemptSeeder extends Seeder
     }
 
     /**
-     * Insert the answers of the inserted attempts.
+     * Insert one quiz's attempts, then their answers (one quiz at a time keeps memory use flat).
      *
      * @param  list<array{row: array<string, mixed>, answers: list<array<string, mixed>>}>  $attempts
      */
-    private function seedAnswers(array $attempts): void
+    private function seedQuizAttempts(Quiz $quiz, array $attempts): void
     {
+        if ($attempts === []) {
+            return;
+        }
+
+        BulkInsert::models(QuizAttempt::class, array_column($attempts, 'row'));
+
         $attemptIds = [];
 
-        foreach (QuizAttempt::query()->toBase()->get(['id', 'quiz_id', 'student_id', 'attempt_number']) as $attempt) {
-            $attemptIds[$attempt->quiz_id.'|'.$attempt->student_id.'|'.$attempt->attempt_number] = (int) $attempt->id;
+        foreach (QuizAttempt::query()->whereBelongsTo($quiz)->toBase()->get(['id', 'student_id', 'attempt_number']) as $attempt) {
+            $attemptIds[$attempt->student_id.'|'.$attempt->attempt_number] = (int) $attempt->id;
         }
 
         $rows = [];
 
         foreach ($attempts as $attempt) {
-            $attemptId = $attemptIds[$attempt['row']['quiz_id'].'|'.$attempt['row']['student_id'].'|'.$attempt['row']['attempt_number']];
+            $attemptId = $attemptIds[$attempt['row']['student_id'].'|'.$attempt['row']['attempt_number']];
 
             foreach ($attempt['answers'] as $answer) {
                 $rows[] = [

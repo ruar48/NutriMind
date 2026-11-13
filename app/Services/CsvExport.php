@@ -39,9 +39,9 @@ class CsvExport
      * Stream a CSV download of the headings followed by the rows.
      *
      * Rows may be an array, a Collection or a LazyCollection (rows are read while streaming, so a LazyCollection or
-     * a lazy() query never loads everything at once). Each row is an array, an Arrayable (Collection, model), a
+     * a lazy() query never loads everything at once). Each row is an array, a Collection (any Arrayable), a
      * Traversable or a plain object such as a query builder row; its values must be in heading order (keys are
-     * ignored). Cells: null → empty, bool → Yes/No, enums → label() (or their value), dates → Y-m-d H:i:s, other
+     * ignored), so map models to arrays first. Cells: null → empty, bool → Yes/No, enums → label() (or their value), dates → Y-m-d H:i:s, other
      * values → their string form. Pass numbers as int/float so they stay numeric.
      *
      * @param  array<int|string, mixed>  $headings

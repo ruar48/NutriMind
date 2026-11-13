@@ -57,6 +57,11 @@ class ProgressSeeder extends Seeder
     private const DIFFICULTY_FACTOR = ['easy' => 1.0, 'medium' => 0.85, 'hard' => 0.65];
 
     /**
+     * How many activity progress rows are buffered before the buffers are written.
+     */
+    private const ROWS_PER_FLUSH = 400;
+
+    /**
      * The seeded random stream of this seeder.
      */
     private DemoRandom $random;
@@ -149,11 +154,29 @@ class ProgressSeeder extends Seeder
             }
 
             $this->updateProfile($settings, $studentId, $profile, $activities, $learnerMissions, $learnerAttempts);
+
+            if (count($activityRows) >= self::ROWS_PER_FLUSH) {
+                $this->flush($activityRows, $missionRows, $awardRows);
+            }
         }
 
+        $this->flush($activityRows, $missionRows, $awardRows);
+    }
+
+    /**
+     * Insert the buffered progress and award rows and empty the buffers (flushing as it goes keeps memory use flat).
+     *
+     * @param  list<array<string, mixed>>  $activityRows
+     * @param  list<array<string, mixed>>  $missionRows
+     * @param  list<array<string, mixed>>  $awardRows
+     */
+    private function flush(array &$activityRows, array &$missionRows, array &$awardRows): void
+    {
         BulkInsert::models(ActivityProgress::class, $activityRows);
         BulkInsert::models(MissionProgress::class, $missionRows);
         BulkInsert::pivot((new User)->rewards(), $awardRows);
+
+        $activityRows = $missionRows = $awardRows = [];
     }
 
     /**

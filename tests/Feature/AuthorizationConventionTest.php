@@ -6,7 +6,7 @@ use App\Models\Classroom;
 use App\Models\User;
 use App\Services\RolePermissions;
 use Illuminate\Support\Facades\Route;
-use Tests\Fixtures\Authorization\AuthorizedClassroomController;
+use Tests\Fixtures\Authorization\AuthorizedFixtureController;
 
 /*
 | Proves the contract's authorization convention: #[Authorize] on a controller action runs as `can` middleware,
@@ -16,9 +16,10 @@ use Tests\Fixtures\Authorization\AuthorizedClassroomController;
 
 beforeEach(function () {
     Route::middleware(['web', 'auth', 'role:teacher'])->prefix('_test/authorize')->group(function () {
-        Route::put('/classrooms/{classroom}', [AuthorizedClassroomController::class, 'update']);
-        Route::post('/classrooms', [AuthorizedClassroomController::class, 'store']);
-        Route::post('/exports', [AuthorizedClassroomController::class, 'export']);
+        Route::put('/classrooms/{classroom}', [AuthorizedFixtureController::class, 'update']);
+        Route::post('/classrooms', [AuthorizedFixtureController::class, 'store']);
+        Route::post('/exports', [AuthorizedFixtureController::class, 'export']);
+        Route::post('/students/{student}/feedback', [AuthorizedFixtureController::class, 'feedback']);
     });
 });
 
@@ -110,6 +111,46 @@ describe('permission enum', function () {
         $this->post('/_test/authorize/exports', ['name' => 'Quarter 1'])
             ->assertOk()
             ->assertSeeText('exported Quarter 1');
+    });
+});
+
+describe('explicitly bound user parameter', function () {
+    it('reports a learner outside the teacher\'s classrooms as missing before validating the payload', function () {
+        $classroom = Classroom::factory()->create();
+        $student = User::factory()->student()->enrolledIn($classroom)->create();
+        $this->actingAs(User::factory()->teaching($classroom->subject)->create());
+
+        $this->post('/_test/authorize/students/'.$student->id.'/feedback', ['name' => ''])
+            ->assertNotFound()
+            ->assertSessionHasNoErrors();
+    });
+
+    it('reports an account of another role as missing before authorizing', function () {
+        $classroom = Classroom::factory()->create();
+        $this->actingAs($classroom->teacher);
+
+        $this->post('/_test/authorize/students/'.User::factory()->parent()->create()->id.'/feedback', ['name' => ''])
+            ->assertNotFound()
+            ->assertSessionHasNoErrors();
+    });
+
+    it('validates the payload once the policy allows', function () {
+        $classroom = Classroom::factory()->create();
+        $student = User::factory()->student()->enrolledIn($classroom)->create();
+        $this->actingAs($classroom->teacher);
+
+        $this->post('/_test/authorize/students/'.$student->id.'/feedback', ['name' => 'Good'])
+            ->assertSessionHasErrors(['name' => 'The name field must be at least 5 characters.']);
+    });
+
+    it('runs the action with the bound learner', function () {
+        $classroom = Classroom::factory()->create();
+        $student = User::factory()->student()->enrolledIn($classroom)->create();
+        $this->actingAs($classroom->teacher);
+
+        $this->post('/_test/authorize/students/'.$student->id.'/feedback', ['name' => 'Great progress'])
+            ->assertOk()
+            ->assertSeeText('feedback for '.$student->id.': Great progress');
     });
 });
 

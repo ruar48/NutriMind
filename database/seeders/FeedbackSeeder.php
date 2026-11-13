@@ -99,13 +99,36 @@ class FeedbackSeeder extends Seeder
             ], fn (array $candidate): bool => $candidate['after'] <= $this->clock->now - self::RESPONSE_DELAY);
 
             foreach ($this->choose(array_values($candidates), $target, $demoChildren) as $candidate) {
-                $rows[] = $this->feedbackRow($teacherId, $candidate, (string) $names[$candidate['student_id']], isset($withGuardian[$candidate['student_id']]));
+                $rows[] = $this->feedbackRow(
+                    $teacherId, $candidate, (string) $names[$candidate['student_id']],
+                    isset($withGuardian[$candidate['student_id']]), in_array($candidate['student_id'], $demoChildren, true),
+                );
             }
         }
 
         usort($rows, fn (array $a, array $b): int => [$a['created_at'], $a['teacher_id']] <=> [$b['created_at'], $b['teacher_id']]);
 
-        BulkInsert::models(LearnerFeedback::class, $rows);
+        BulkInsert::models(LearnerFeedback::class, $this->leaveNewestUnread($rows, $demoChildren));
+    }
+
+    /**
+     * Leave the newest message of each of the demo family's children unread, so the parent portal shows new feedback.
+     *
+     * @param  list<array<string, mixed>>  $rows
+     * @param  list<int>  $demoChildren
+     * @return list<array<string, mixed>>
+     */
+    private function leaveNewestUnread(array $rows, array $demoChildren): array
+    {
+        foreach ($demoChildren as $childId) {
+            $newest = array_key_last(array_filter($rows, fn (array $row): bool => $row['student_id'] === $childId));
+
+            if ($newest !== null) {
+                $rows[$newest]['read_at'] = null;
+            }
+        }
+
+        return $rows;
     }
 
     /**
@@ -269,12 +292,13 @@ class FeedbackSeeder extends Seeder
     }
 
     /**
-     * Build a feedback row the teacher wrote within a few days after the result (and before now).
+     * Build a feedback row the teacher wrote within a few days after the result (and before now); feedback to the
+     * demo family's children is always shared with their guardian.
      *
      * @param  array<string, mixed>  $candidate
      * @return array<string, mixed>
      */
-    private function feedbackRow(int $teacherId, array $candidate, string $fullName, bool $hasGuardian): array
+    private function feedbackRow(int $teacherId, array $candidate, string $fullName, bool $hasGuardian, bool $isDemoChild): array
     {
         $after = $candidate['after'];
         $writtenAt = DemoClock::workTime($this->random, DemoClock::startOfDay($after) + $this->random->int(0, 2) * DemoClock::DAY);
@@ -289,7 +313,7 @@ class FeedbackSeeder extends Seeder
                 ? [$templates[0]]
                 : array_values(array_diff_key($templates, $candidate['type'] === 'encouragement' ? [0 => true, 1 => true] : [])));
 
-        $isVisible = $this->random->chance(self::VISIBILITY[$type]);
+        $isVisible = $this->random->chance(self::VISIBILITY[$type]) || $isDemoChild;
         $readAt = $isVisible && $hasGuardian && $this->random->chance(0.5)
             ? min($writtenAt + $this->random->int(60, 96 * 60) * 60, $this->clock->now - 5 * 60)
             : null;

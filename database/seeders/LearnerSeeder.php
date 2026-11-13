@@ -16,6 +16,7 @@ use Database\Seeders\Support\Catalog\SchoolCatalog;
 use Database\Seeders\Support\DemoClock;
 use Database\Seeders\Support\DemoPassword;
 use Database\Seeders\Support\DemoRandom;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -372,7 +373,7 @@ class LearnerSeeder extends Seeder
             ->orderBy('id')
             ->get(['id', 'section'])
             ->groupBy('section')
-            ->map(fn ($classrooms): array => $classrooms->modelKeys());
+            ->map(fn (EloquentCollection $classrooms): array => $classrooms->modelKeys());
 
         $archivedClassroomId = Classroom::query()->archived()->sole(['id'])->getKey();
         $rows = [];
@@ -555,6 +556,8 @@ class LearnerSeeder extends Seeder
 
     /**
      * Get a guardian's last sign-in: recent for most, weeks ago for some, never for a few.
+     *
+     * @param  array{kind: string}  $guardian
      */
     private function guardianLastLogin(array $guardian, int $createdAt, ?int $deactivatedAt): ?string
     {

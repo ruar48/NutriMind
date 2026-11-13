@@ -15,7 +15,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
 /**
- * Seeds the question bank: about eighty reviewed-by-the-teacher nutrition questions, many shared within a subject.
+ * Seeds the question bank: eighty nutrition questions, most of them reviewed and many shared within their subject.
  *
  * The demo teacher wrote her Grade 5 Health items last school year (they appear in last year's quiz); the items of
  * the module still in preparation are new; every other item was written during the first quarter. How often each

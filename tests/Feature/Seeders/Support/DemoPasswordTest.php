@@ -1,7 +1,11 @@
 <?php
 
-test('example', function () {
-    $response = $this->get('/');
+use Database\Seeders\Support\DemoPassword;
+use Illuminate\Support\Facades\Hash;
 
-    $response->assertStatus(200);
+it('hashes the demo password once and reuses the hash', function () {
+    $hash = DemoPassword::hash();
+
+    expect(DemoPassword::hash())->toBe($hash);
+    expect(Hash::check('password', $hash))->toBeTrue();
 });
