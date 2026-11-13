@@ -2,6 +2,7 @@
 
 namespace App\Services\Reports;
 
+use App\Enums\GradeLevel;
 use App\Models\Classroom;
 use App\Models\QuizAttempt;
 use App\Models\Subject;
@@ -56,7 +57,7 @@ final class ReportScope
                 fn (EloquentBuilder $query) => $query->active(),
             )
             ->when($this->filters->subjectId, fn (EloquentBuilder $query, int $subjectId) => $query->where('subject_id', $subjectId))
-            ->when($this->filters->gradeLevel, fn (EloquentBuilder $query, $grade) => $query->where('grade_level', $grade))
+            ->when($this->filters->gradeLevel, fn (EloquentBuilder $query, GradeLevel $grade) => $query->where('grade_level', $grade))
             ->when($this->forAdmin() ? $this->filters->teacherId : null, fn (EloquentBuilder $query, int $teacherId) => $query->where('teacher_id', $teacherId))
             ->with('subject')
             ->orderBy('name')

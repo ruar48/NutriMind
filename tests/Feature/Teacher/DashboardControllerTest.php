@@ -125,10 +125,16 @@ it('runs the same number of queries however many classrooms the teacher has', fu
         return count(DB::getQueryLog());
     };
 
+    $countQueries();
     $before = $countQueries();
 
     foreach (range(1, 3) as $extra) {
         $classroom = Classroom::factory()->for($school->teresa, 'teacher')->for($school->health)->create();
         $learner = User::factory()->student()->enrolledIn($classroom)->create();
         $classroom->quizzes()->attach($school->plateQuiz, ['due_at' => now()->addDays(2)]);
-        QuizAttempt::factory()->for($school->plateQuiz)->for($learner, 'student')->for($classroom)->create(['submitted_at' =
+        QuizAttempt::factory()->for($school->plateQuiz)->for($learner, 'student')->for($classroom)->create(['submitted_at' => now()->subHour()]);
+    }
+    $school->teresa->refresh();
+
+    expect($countQueries())->toBe($before);
+});

@@ -348,3 +348,13 @@ describe('destroy', function () {
         }, '2 classrooms, 3 quizzes and 1 lesson plan'],
     ]);
 
+    it('forbids every other role', function (string $role) {
+        $subject = Subject::factory()->create();
+
+        $this->actingAs(User::factory()->{$role}()->create())
+            ->delete(route('admin.subjects.destroy', $subject))
+            ->assertForbidden();
+
+        $this->assertModelExists($subject);
+    })->with(['teacher', 'parent']);
+});

@@ -52,9 +52,9 @@
     </x-page-header>
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <x-stat-card label="Activities aligned" :value="number_format(count($aligned['activities']))" icon="puzzle" color="grape" :hint="$activityCount.' available for '.$scope" data-animate style="--stagger: 1" />
-        <x-stat-card label="Quizzes aligned" :value="number_format(count($aligned['quizzes']))" icon="clipboard-check" color="sky" :hint="$quizzes->count().' of your quizzes fit'" data-animate style="--stagger: 2" />
-        <x-stat-card label="Missions aligned" :value="number_format(count($aligned['missions']))" icon="flag" color="carrot" :hint="$missions->count().' missions fit'" data-animate style="--stagger: 3" />
+        <x-stat-card label="Activities aligned" :value="number_format(count($aligned['activities']))" icon="puzzle" color="grape" :hint="trans_choice('{0} None available for :scope|{1} 1 available for :scope|[2,*] :count available for :scope', $activityCount, ['scope' => $scope])" data-animate style="--stagger: 1" />
+        <x-stat-card label="Quizzes aligned" :value="number_format(count($aligned['quizzes']))" icon="clipboard-check" color="sky" :hint="trans_choice('{0} None of your quizzes fits this plan|{1} 1 of your quizzes fits this plan|[2,*] :count of your quizzes fit this plan', $quizzes->count())" data-animate style="--stagger: 2" />
+        <x-stat-card label="Missions aligned" :value="number_format(count($aligned['missions']))" icon="flag" color="carrot" :hint="trans_choice('{0} No mission fits this plan|{1} 1 mission fits this plan|[2,*] :count missions fit this plan', $missions->count())" data-animate style="--stagger: 3" />
         @if ($coverage)
             <x-stat-card label="Game coverage" :value="$coverage->status->label()" :icon="$coverage->status->icon()" :color="$coverage->status->color()"
                 :hint="$coverage->modules->isEmpty() ? 'No game module teaches '.$coverage->code.' yet' : trans_choice('{1} :count module teaches this competency|[2,*] :count modules teach this competency', $coverage->modules->count())"

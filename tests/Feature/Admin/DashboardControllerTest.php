@@ -98,6 +98,7 @@ it('runs the same number of queries however many classrooms have results', funct
         return count(DB::getQueryLog());
     };
 
+    $countQueries();
     $before = $countQueries();
 
     foreach (range(1, 3) as $extra) {
