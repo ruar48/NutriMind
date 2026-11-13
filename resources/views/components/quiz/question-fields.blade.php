@@ -32,7 +32,7 @@
 @endphp
 
 <x-form.section title="Question" :description="$type->description()" columns="2">
-    <div class="col-span-full flex flex-col gap-2">
+    <div class="col-span-full flex min-w-0 flex-col gap-2">
         <p class="text-sm font-medium text-ink-800 dark:text-ink-100" id="question-type-label">Question type</p>
         <x-tabs label="Question type">
             @foreach (\App\Enums\QuestionType::cases() as $case)
