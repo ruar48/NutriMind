@@ -274,28 +274,35 @@ it('records quiz attempts whose answers add up to their scores', function () {
     $this->seed();
 
     $questions = QuizQuestion::query()->get()->keyBy('id');
-    $questionsByQuiz = $questions->groupBy('quiz_id');
+    $questionIdsByQuiz = $questions->groupBy('quiz_id')->map(fn (Collection $quizQuestions): array => collect($quizQuestions->modelKeys())->sort()->values()->all());
     $passingScores = Quiz::query()->pluck('passing_score', 'id');
 
-    expect(QuizAttempt::query()->count())->toBeGreaterThan(1000);
+    expect(DB::table('quiz_attempts')->count())->toBeGreaterThan(1000);
 
-    QuizAttempt::query()->with('answers')->chunkById(100, function (Collection $attempts) use ($questions, $questionsByQuiz, $passingScores): void {
+    DB::table('quiz_attempts')->orderBy('id')->chunk(200, function (Collection $attempts) use ($questions, $questionIdsByQuiz, $passingScores): void {
+        $answers = DB::table('quiz_attempt_answers')->whereIn('quiz_attempt_id', $attempts->pluck('id'))->get()->groupBy('quiz_attempt_id');
+
         foreach ($attempts as $attempt) {
-            $quizQuestions = $questionsByQuiz[$attempt->quiz_id];
+            $attemptAnswers = $answers[$attempt->id];
+            $score = 0;
 
-            expect($attempt->answers->pluck('quiz_question_id')->sort()->values()->all())->toBe($quizQuestions->pluck('id')->sort()->values()->all());
+            expect($attemptAnswers->pluck('quiz_question_id')->sort()->values()->all())->toBe($questionIdsByQuiz[$attempt->quiz_id]);
 
-            foreach ($attempt->answers as $answer) {
+            foreach ($attemptAnswers as $answer) {
                 $question = $questions[$answer->quiz_question_id];
+                $isCorrect = $question->isCorrectAnswer($answer->answer);
 
-                expect($answer->is_correct)->toBe($question->isCorrectAnswer($answer->answer));
-                expect($answer->points_awarded)->toBe($answer->is_correct ? $question->points : 0);
+                expect((bool) $answer->is_correct)->toBe($isCorrect);
+                expect((int) $answer->points_awarded)->toBe($isCorrect ? $question->points : 0);
+
+                $score += (int) $answer->points_awarded;
             }
 
-            expect($attempt->score)->toBe($attempt->answers->sum('points_awarded'));
-            expect($attempt->max_score)->toBe($quizQuestions->sum('points'));
-            expect((float) $attempt->percentage)->toBe(round($attempt->score / $attempt->max_score * 100, 2));
-            expect($attempt->passed)->toBe((float) $attempt->percentage >= $passingScores[$attempt->quiz_id]);
+            $maxScore = $questions->only($questionIdsByQuiz[$attempt->quiz_id])->sum('points');
+            $percentage = round($score / $maxScore * 100, 2);
+
+            expect([(int) $attempt->score, (int) $attempt->max_score, (float) $attempt->percentage])->toBe([$score, $maxScore, $percentage]);
+            expect((bool) $attempt->passed)->toBe($percentage >= $passingScores[$attempt->quiz_id]);
         }
     });
 });
@@ -305,28 +312,28 @@ it('keeps attempts inside their assignment window and within the rules of the qu
 
     $assignments = DB::table('classroom_quiz')->get()->keyBy(fn (object $row): string => $row->classroom_id.'|'.$row->quiz_id);
     $enrollments = DB::table('classroom_student')->get()->keyBy(fn (object $row): string => $row->classroom_id.'|'.$row->student_id);
-    $attempts = QuizAttempt::query()->with('quiz')->orderBy('attempt_number')->get();
+    $quizzes = Quiz::query()->get(['id', 'status', 'max_attempts', 'time_limit_minutes'])->keyBy('id');
+    $attempts = DB::table('quiz_attempts')->orderBy('attempt_number')->orderBy('id')->get();
+    $now = now()->toDateTimeString();
 
     foreach ($attempts as $attempt) {
         $assignment = $assignments[$attempt->classroom_id.'|'.$attempt->quiz_id];
         $enrollment = $enrollments[$attempt->classroom_id.'|'.$attempt->student_id];
+        $quiz = $quizzes[$attempt->quiz_id];
 
-        expect($attempt->started_at->gte($assignment->available_from))->toBeTrue();
-        expect($attempt->started_at->gte($enrollment->enrolled_at))->toBeTrue();
-        expect($attempt->submitted_at->lte($assignment->due_at))->toBeTrue();
-        expect($attempt->submitted_at->lte(now()))->toBeTrue();
-        expect($attempt->started_at->diffInSeconds($attempt->submitted_at))->toEqual($attempt->duration_seconds);
-        expect($attempt->duration_seconds)->toBeLessThanOrEqual($attempt->quiz->time_limit_minutes * 60);
-        expect($attempt->synced_at->gte($attempt->submitted_at))->toBeTrue();
-        expect($attempt->is_offline ? $attempt->synced_at->gt($attempt->submitted_at) : $attempt->synced_at->eq($attempt->submitted_at))->toBeTrue();
-        expect($attempt->quiz->max_attempts === null || $attempt->attempt_number <= $attempt->quiz->max_attempts)->toBeTrue();
-        expect($attempt->quiz->status)->not->toBe(QuizStatus::Draft);
+        expect($attempt->started_at)->toBeGreaterThanOrEqual($assignment->available_from)->toBeGreaterThanOrEqual($enrollment->enrolled_at);
+        expect($attempt->submitted_at)->toBeLessThanOrEqual($assignment->due_at)->toBeLessThanOrEqual($now);
+        expect(strtotime($attempt->submitted_at) - strtotime($attempt->started_at))->toBe((int) $attempt->duration_seconds);
+        expect((int) $attempt->duration_seconds)->toBeLessThanOrEqual($quiz->time_limit_minutes * 60);
+        expect($attempt->is_offline ? $attempt->synced_at > $attempt->submitted_at : $attempt->synced_at === $attempt->submitted_at)->toBeTrue();
+        expect($quiz->max_attempts === null || $attempt->attempt_number <= $quiz->max_attempts)->toBeTrue();
+        expect($quiz->status)->not->toBe(QuizStatus::Draft);
     }
 
-    foreach ($attempts->groupBy(fn (QuizAttempt $attempt): string => $attempt->quiz_id.'|'.$attempt->student_id) as $series) {
-        $submittedAt = $series->map(fn (QuizAttempt $attempt): int => $attempt->submitted_at->getTimestamp())->all();
+    foreach ($attempts->groupBy(fn (object $attempt): string => $attempt->quiz_id.'|'.$attempt->student_id) as $series) {
+        $submittedAt = $series->pluck('submitted_at')->all();
 
-        expect($series->pluck('attempt_number')->all())->toBe(range(1, $series->count()));
+        expect($series->pluck('attempt_number')->map(fn (mixed $number): int => (int) $number)->all())->toBe(range(1, $series->count()));
         expect($submittedAt)->toBe(collect($submittedAt)->sort()->values()->all());
     }
 });
@@ -343,14 +350,16 @@ it('has about 85% of the assigned learners take each past-due quiz, a tenth of t
     $attempted = QuizAttempt::query()->toBase()->get(['quiz_id', 'student_id'])->map(fn (object $row): string => $row->quiz_id.'|'.$row->student_id)->flip();
     $participation = $assigned->filter(fn (object $row): bool => isset($attempted[$row->quiz_id.'|'.$row->student_id]))->count() / $assigned->count();
 
-    $attempts = QuizAttempt::query()->get(['percentage', 'submitted_at', 'is_offline', 'attempt_number']);
-    $recent = $attempts->filter(fn (QuizAttempt $attempt): bool => $attempt->submitted_at->gte(now()->subWeeks(2)))->avg(fn (QuizAttempt $attempt): float => (float) $attempt->percentage);
-    $earlier = $attempts->filter(fn (QuizAttempt $attempt): bool => $attempt->submitted_at->between(now()->subWeeks(8), now()->subWeeks(5)))->avg(fn (QuizAttempt $attempt): float => (float) $attempt->percentage);
+    $attempts = DB::table('quiz_attempts')->get(['percentage', 'submitted_at', 'is_offline', 'attempt_number']);
+    $average = fn (string $from, string $until): float => $attempts
+        ->filter(fn (object $attempt): bool => $attempt->submitted_at >= $from && $attempt->submitted_at < $until)
+        ->avg(fn (object $attempt): float => (float) $attempt->percentage);
 
     expect($participation)->toBeGreaterThan(0.8)->toBeLessThan(0.9);
-    expect($attempts->where('is_offline', true)->count() / $attempts->count())->toBeGreaterThan(0.07)->toBeLessThan(0.14);
-    expect($attempts->where('attempt_number', '>', 1)->count() / $attempts->count())->toBeGreaterThan(0.1)->toBeLessThan(0.3);
-    expect($recent - $earlier)->toBeGreaterThan(2.0)->toBeLessThan(12.0);
+    expect($attempts->filter(fn (object $attempt): bool => (bool) $attempt->is_offline)->count() / $attempts->count())->toBeGreaterThan(0.07)->toBeLessThan(0.14);
+    expect($attempts->filter(fn (object $attempt): bool => $attempt->attempt_number > 1)->count() / $attempts->count())->toBeGreaterThan(0.1)->toBeLessThan(0.3);
+    expect($average(now()->subWeeks(2)->toDateTimeString(), now()->toDateTimeString()) - $average(now()->subWeeks(8)->toDateTimeString(), now()->subWeeks(5)->toDateTimeString()))
+        ->toBeGreaterThan(2.0)->toBeLessThan(12.0);
 });
 
 it('spreads the learners across every DepEd performance band', function () {
@@ -407,50 +416,55 @@ it('records game progress only in the learner\'s own subjects and grade', functi
         ->get(['classroom_student.student_id', 'classrooms.subject_id'])
         ->groupBy('student_id')
         ->map(fn (Collection $rows): array => $rows->pluck('subject_id')->all());
-    $grades = StudentProfile::query()->get()->mapWithKeys(fn (StudentProfile $profile): array => [$profile->user_id => $profile->grade_level->value]);
+    $grades = DB::table('student_profiles')->pluck('grade_level', 'user_id');
+    $activityProgress = DB::table('activity_progress')
+        ->join('learning_activities', 'learning_activities.id', '=', 'activity_progress.learning_activity_id')
+        ->join('learning_modules', 'learning_modules.id', '=', 'learning_activities.learning_module_id')
+        ->get(['activity_progress.student_id', 'activity_progress.status', 'activity_progress.points_earned', 'learning_activities.points', 'learning_modules.subject_id', 'learning_modules.grade_level']);
+    $missionProgress = DB::table('mission_progress')
+        ->join('missions', 'missions.id', '=', 'mission_progress.mission_id')
+        ->get(['mission_progress.student_id', 'mission_progress.status', 'mission_progress.points_earned', 'mission_progress.started_at', 'missions.subject_id', 'missions.grade_level', 'missions.points_reward', 'missions.starts_on']);
 
-    ActivityProgress::query()->with('activity.module')->chunkById(500, function (Collection $rows) use ($subjectsByLearner, $grades): void {
-        foreach ($rows as $progress) {
-            expect($subjectsByLearner[$progress->student_id])->toContain($progress->activity->module->subject_id);
-            expect($progress->activity->module->grade_level->value)->toBe($grades[$progress->student_id]);
-            expect($progress->points_earned)->toBe($progress->status === ProgressStatus::Completed ? $progress->activity->points : 0);
-        }
-    });
+    foreach ($activityProgress as $progress) {
+        expect($subjectsByLearner[$progress->student_id])->toContain($progress->subject_id);
+        expect((int) $progress->grade_level)->toBe((int) $grades[$progress->student_id]);
+        expect((int) $progress->points_earned)->toBe($progress->status === ProgressStatus::Completed->value ? (int) $progress->points : 0);
+    }
 
-    MissionProgress::query()->with('mission')->chunkById(500, function (Collection $rows) use ($subjectsByLearner, $grades): void {
-        foreach ($rows as $progress) {
-            expect($subjectsByLearner[$progress->student_id])->toContain($progress->mission->subject_id);
-            expect($progress->mission->grade_level === null || $progress->mission->grade_level->value === $grades[$progress->student_id])->toBeTrue();
-            expect($progress->points_earned)->toBe($progress->status === ProgressStatus::Completed ? $progress->mission->points_reward : 0);
-            expect($progress->mission->starts_on === null || $progress->started_at->gte($progress->mission->starts_on))->toBeTrue();
-        }
-    });
+    foreach ($missionProgress as $progress) {
+        expect($subjectsByLearner[$progress->student_id])->toContain($progress->subject_id);
+        expect($progress->grade_level === null || (int) $progress->grade_level === (int) $grades[$progress->student_id])->toBeTrue();
+        expect((int) $progress->points_earned)->toBe($progress->status === ProgressStatus::Completed->value ? (int) $progress->points_reward : 0);
+        expect($progress->starts_on === null || $progress->started_at >= $progress->starts_on)->toBeTrue();
+    }
 });
 
 it('awards rewards only to learners who met their criteria', function () {
     $this->seed();
 
-    $rewards = Reward::query()->with('students.studentProfile')->get()->keyBy('name');
+    $awards = DB::table('reward_student')
+        ->join('rewards', 'rewards.id', '=', 'reward_student.reward_id')
+        ->join('student_profiles', 'student_profiles.user_id', '=', 'reward_student.student_id')
+        ->get(['rewards.name', 'rewards.points_required', 'rewards.created_at AS reward_created_at', 'reward_student.student_id', 'reward_student.awarded_at', 'student_profiles.total_points'])
+        ->groupBy('name');
+    $now = now()->toDateTimeString();
 
-    foreach ($rewards as $reward) {
-        foreach ($reward->students as $student) {
-            expect($student->pivot->awarded_at->gte($reward->created_at))->toBeTrue();
-            expect($student->pivot->awarded_at->lte(now()))->toBeTrue();
+    foreach ($awards->flatten(1) as $award) {
+        expect($award->awarded_at)->toBeGreaterThanOrEqual($award->reward_created_at)->toBeLessThanOrEqual($now);
 
-            if ($reward->points_required !== null) {
-                expect($student->studentProfile->total_points)->toBeGreaterThanOrEqual($reward->points_required);
-            }
+        if ($award->points_required !== null) {
+            expect((int) $award->total_points)->toBeGreaterThanOrEqual((int) $award->points_required);
         }
     }
 
     $labelMission = Mission::query()->where('title', 'Crack the Label Code')->sole();
-    $labelDetectives = $rewards['Label Detective']->students->modelKeys();
+    $labelDetectives = $awards['Label Detective']->pluck('student_id')->sort()->values()->all();
 
     expect($labelDetectives)->not->toBeEmpty();
-    expect(MissionProgress::query()->whereBelongsTo($labelMission)->completed()->pluck('student_id')->sort()->values()->all())->toBe(collect($labelDetectives)->sort()->values()->all());
-    expect($rewards['Nutrition Month Star 2026']->is_active)->toBeFalse();
-    expect($rewards['Nutrition Month Star 2026']->students->every(fn (User $student): bool => $student->pivot->awarded_at->month === 7))->toBeTrue();
-    expect($rewards->every(fn (Reward $reward): bool => $reward->students->isNotEmpty()))->toBeTrue();
+    expect(MissionProgress::query()->whereBelongsTo($labelMission)->completed()->pluck('student_id')->sort()->values()->all())->toBe($labelDetectives);
+    expect(Reward::query()->where('name', 'Nutrition Month Star 2026')->value('is_active'))->toBeFalse();
+    expect($awards['Nutrition Month Star 2026']->every(fn (object $award): bool => str_starts_with($award->awarded_at, '2026-07-')))->toBeTrue();
+    expect($awards->keys()->sort()->values()->all())->toBe(Reward::query()->orderBy('name')->pluck('name')->sort()->values()->all());
 });
 
 it('writes weekly lesson plans with every content coverage status represented', function () {
@@ -569,24 +583,29 @@ it('seeds a moderated parent forum', function () {
 });
 
 it('produces the same school on every run and leaves the global random generator unseeded afterwards', function () {
-    $rows = function (string $table, array $columns): array {
+    $digest = function (string $table, array $columns): string {
         $query = DB::table($table)->select($columns);
+        $hash = hash_init('sha256');
 
         foreach ($columns as $column) {
             $query->orderBy($column);
         }
 
-        return $query->get()->map(fn (object $row): array => (array) $row)->all();
+        foreach ($query->cursor() as $row) {
+            hash_update($hash, json_encode($row));
+        }
+
+        return hash_final($hash);
     };
 
     $fingerprint = fn (): array => [
-        'users' => $rows('users', ['email', 'username', 'name', 'role', 'created_at', 'last_login_at']),
-        'profiles' => $rows('student_profiles', ['lrn', 'birthdate', 'total_points', 'level', 'last_active_at', 'last_synced_at']),
-        'attempts' => $rows('quiz_attempts', ['submitted_at', 'score', 'max_score', 'attempt_number', 'synced_at', 'is_offline']),
-        'answers' => $rows('quiz_attempt_answers', ['answer', 'is_correct', 'points_awarded', 'created_at']),
-        'progress' => $rows('activity_progress', ['completed_at', 'score', 'points_earned', 'time_spent_seconds', 'synced_at']),
-        'feedback' => $rows('learner_feedback', ['created_at', 'message', 'type', 'read_at']),
-        'replies' => $rows('forum_replies', ['created_at', 'body']),
+        'users' => $digest('users', ['email', 'username', 'name', 'role', 'created_at', 'last_login_at']),
+        'profiles' => $digest('student_profiles', ['lrn', 'birthdate', 'total_points', 'level', 'last_active_at', 'last_synced_at']),
+        'attempts' => $digest('quiz_attempts', ['submitted_at', 'score', 'max_score', 'attempt_number', 'synced_at', 'is_offline']),
+        'answers' => $digest('quiz_attempt_answers', ['answer', 'is_correct', 'points_awarded', 'created_at']),
+        'progress' => $digest('activity_progress', ['completed_at', 'score', 'points_earned', 'time_spent_seconds', 'synced_at']),
+        'feedback' => $digest('learner_feedback', ['created_at', 'message', 'type', 'read_at']),
+        'replies' => $digest('forum_replies', ['created_at', 'body']),
     ];
 
     $this->seed();
@@ -603,6 +622,7 @@ it('produces the same school on every run and leaves the global random generator
 
     $this->seed();
 
-    expect($fingerprint())->toEqual($first);
+    expect($fingerprint())->toBe($first);
+    expect(DB::table('quiz_attempt_answers')->count())->toBeGreaterThan(10000);
     expect(mt_rand())->not->toBe($afterFirstRun);
 });

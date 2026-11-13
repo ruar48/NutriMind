@@ -23,6 +23,15 @@ class ForumReplyPolicy
     public const CANNOT_DELETE_MESSAGE = 'Only the author or an administrator can delete this reply.';
 
     /**
+     * Determine whether the user can open the reply: anyone who can open its thread (otherwise reported as
+     * missing, or refused while the forum is closed to them).
+     */
+    public function view(User $user, ForumReply $reply): Response
+    {
+        return Gate::forUser($user)->inspect('view', $reply->thread);
+    }
+
+    /**
      * Determine whether the user can edit the reply: its author, while the thread is not locked.
      */
     public function update(User $user, ForumReply $reply): Response
