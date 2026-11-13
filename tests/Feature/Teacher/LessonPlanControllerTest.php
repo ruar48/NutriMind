@@ -15,6 +15,7 @@ use App\Models\Subject;
 use App\Models\User;
 use App\Policies\LessonPlanPolicy;
 use App\Services\RolePermissions;
+use Illuminate\Support\Facades\DB;
 
 /**
  * A valid lesson plan form submission.
@@ -188,6 +189,27 @@ describe('index', function () {
             ->get(route('teacher.lesson-plans.index', ['subject' => Subject::factory()->create()->id]))
             ->assertOk()
             ->assertViewHas('lessonPlans', fn ($lessonPlans): bool => $lessonPlans->total() === 1);
+    });
+
+    it('renders more lesson plans without more queries', function () {
+        $subject = Subject::factory()->create();
+        $teacher = User::factory()->teaching($subject)->create();
+        $queries = function () use ($teacher): int {
+            DB::flushQueryLog();
+            DB::enableQueryLog();
+            $this->actingAs($teacher)->get(route('teacher.lesson-plans.index'))->assertOk();
+
+            return count(DB::getQueryLog());
+        };
+        LessonPlan::factory()->for($teacher, 'teacher')->for($subject)->for(AcademicTerm::factory(), 'academicTerm')->create();
+        $queries();
+        $single = $queries();
+
+        foreach (LessonPlan::factory()->for($teacher, 'teacher')->for($subject)->for(AcademicTerm::factory(), 'academicTerm')->count(4)->create() as $lessonPlan) {
+            $lessonPlan->activities()->attach(LearningActivity::factory()->create());
+        }
+
+        expect($queries())->toBe($single);
     });
 
     it('paginates fifteen plans per page', function () {
@@ -387,6 +409,33 @@ describe('show', function () {
             ->assertViewHas('suggestedMissionIds', [$mission->id]);
         expect($response->viewData('activityGroups')->first()['suggested'])->toBeTrue();
         expect(preg_match('#<input[^>]*name="activities\[\]"[^>]*value="'.$alignedActivity->id.'"[^>]*\schecked(?=[\s/>])#', $response->getContent()))->toBe(1);
+    });
+
+    it('renders more content options without more queries', function () {
+        $subject = Subject::factory()->create();
+        $teacher = User::factory()->teaching($subject)->create();
+        $lessonPlan = LessonPlan::factory()->for($teacher, 'teacher')->for($subject)->create(['grade_level' => GradeLevel::Five, 'competency_code' => 'H5N-IA-1']);
+        $addContent = function () use ($subject, $teacher): void {
+            $module = LearningModule::factory()->for($subject)->create(['grade_level' => GradeLevel::Five, 'competency_code' => 'H5N-IA-1']);
+            LearningActivity::factory()->for($module, 'module')->count(2)->create();
+            Mission::factory()->for($module, 'module')->create();
+            Quiz::factory()->for($teacher, 'teacher')->for($subject)->hasQuestions(2)->create(['grade_level' => GradeLevel::Five]);
+        };
+        $queries = function () use ($teacher, $lessonPlan): int {
+            DB::flushQueryLog();
+            DB::enableQueryLog();
+            $this->actingAs($teacher)->get(route('teacher.lesson-plans.show', $lessonPlan))->assertOk();
+
+            return count(DB::getQueryLog());
+        };
+        $addContent();
+        $queries();
+        $single = $queries();
+
+        $addContent();
+        $addContent();
+
+        expect($queries())->toBe($single);
     });
 
     it('shows the empty states when no content fits the plan', function () {

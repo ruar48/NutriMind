@@ -1,8 +1,8 @@
 <?php
 
 use App\Enums\GradeLevel;
-use App\Enums\Permission;
 use App\Enums\PerformanceBand;
+use App\Enums\Permission;
 use App\Enums\UserRole;
 use App\Models\ActivityProgress;
 use App\Models\Classroom;

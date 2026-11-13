@@ -11,7 +11,7 @@
         :breadcrumbs="[['label' => 'Dashboard', 'url' => route('dashboard')], ['label' => 'Parent Forum']]"
     >
         <x-slot:leading>
-            <span class="grid size-14 place-items-center rounded-2xl bg-carrot-500 text-white shadow-card">
+            <span class="grid size-14 place-items-center rounded-2xl bg-carrot-600 text-white shadow-card">
                 <x-icon name="messages-square" class="size-7" />
             </span>
         </x-slot:leading>

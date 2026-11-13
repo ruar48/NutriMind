@@ -372,6 +372,32 @@ describe('show', function () {
             ->lesson_plans_count->toBe(1);
     });
 
+    it('renders more activities, missions and lesson plans without more queries', function () {
+        $admin = User::factory()->admin()->create();
+        $module = LearningModule::factory()->create();
+        $addContent = function () use ($module): void {
+            $activity = LearningActivity::factory()->for($module, 'module')->create();
+            ActivityProgress::factory()->for($activity, 'activity')->create();
+            MissionProgress::factory()->for(Mission::factory()->for($module, 'module'))->create();
+            LessonPlan::factory()->for($module, 'module')->create()->activities()->attach($activity);
+        };
+        $queries = function () use ($admin, $module): int {
+            DB::flushQueryLog();
+            DB::enableQueryLog();
+            $this->actingAs($admin)->get(route('admin.modules.show', $module))->assertOk();
+
+            return count(DB::getQueryLog());
+        };
+        $addContent();
+        $queries();
+        $single = $queries();
+
+        $addContent();
+        $addContent();
+
+        expect($queries())->toBe($single);
+    });
+
     it('shows the empty states of a new module', function () {
         $module = LearningModule::factory()->create();
 

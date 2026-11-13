@@ -54,6 +54,16 @@ it('converts Windows-1252 files to UTF-8', function () {
     expect($csv->rows[0]['values']['name'])->toBe('Niño Peñaflor');
 });
 
+it('converts UTF-16 files with a byte order mark to UTF-8', function (string $mark, string $encoding) {
+    $csv = app(CsvParser::class)->parse($mark.mb_convert_encoding("name,grade_level\r\nNiño Peñaflor,5\r\n", $encoding, 'UTF-8'));
+
+    expect($csv->headers)->toBe(['name', 'grade_level'])
+        ->and($csv->rows[0]['values'])->toBe(['name' => 'Niño Peñaflor', 'grade_level' => '5']);
+})->with([
+    'little-endian' => ["\xFF\xFE", 'UTF-16LE'],
+    'big-endian' => ["\xFE\xFF", 'UTF-16BE'],
+]);
+
 it('reads files with old Mac line endings', function () {
     $csv = app(CsvParser::class)->parse("name,grade_level\rJuan Dela Cruz,5\rAna Santos,6\r");
 

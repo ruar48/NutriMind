@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 /**
  * Reads learner CSV files the way spreadsheets save them.
  *
- * Accepts a UTF-8 byte order mark, Windows-1252 text (Excel's "CSV (Comma delimited)"), comma or semicolon
+ * Accepts a UTF-8 byte order mark, UTF-16 text with a byte order mark, Windows-1252 text (Excel's "CSV (Comma delimited)"), comma or semicolon
  * delimiters (detected from the heading row), quoted cells with delimiters or line breaks, and CRLF, LF or CR line
  * endings. Headings are trimmed, lowercased and have spaces turned into underscores ("First Name" → first_name).
  * Fully blank rows are skipped but still count toward the spreadsheet row numbers.
@@ -18,6 +18,16 @@ class CsvParser
      * The UTF-8 byte order mark that Excel writes at the start of "CSV UTF-8" files.
      */
     private const BYTE_ORDER_MARK = "\xEF\xBB\xBF";
+
+    /**
+     * The byte order mark of UTF-16 little-endian text (Excel's "Unicode Text").
+     */
+    private const UTF16_LITTLE_ENDIAN_MARK = "\xFF\xFE";
+
+    /**
+     * The byte order mark of UTF-16 big-endian text.
+     */
+    private const UTF16_BIG_ENDIAN_MARK = "\xFE\xFF";
 
     /**
      * Parse the file contents.
@@ -96,6 +106,10 @@ class CsvParser
     {
         if (str_starts_with($contents, self::BYTE_ORDER_MARK)) {
             $contents = substr($contents, strlen(self::BYTE_ORDER_MARK));
+        } elseif (str_starts_with($contents, self::UTF16_LITTLE_ENDIAN_MARK)) {
+            $contents = mb_convert_encoding(substr($contents, 2), 'UTF-8', 'UTF-16LE');
+        } elseif (str_starts_with($contents, self::UTF16_BIG_ENDIAN_MARK)) {
+            $contents = mb_convert_encoding(substr($contents, 2), 'UTF-8', 'UTF-16BE');
         }
 
         if (! mb_check_encoding($contents, 'UTF-8')) {

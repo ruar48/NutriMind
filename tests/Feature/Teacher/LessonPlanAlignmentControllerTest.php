@@ -12,11 +12,12 @@ use App\Models\Subject;
 use App\Models\User;
 use App\Policies\LessonPlanPolicy;
 use App\Services\RolePermissions;
+use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Create a Grade 5 lesson plan with content that fits it: two activities, a quiz of its teacher and a mission.
  *
- * @return array{lessonPlan: LessonPlan, activities: \Illuminate\Database\Eloquent\Collection<int, LearningActivity>, quiz: Quiz, mission: Mission}
+ * @return array{lessonPlan: LessonPlan, activities: Collection<int, LearningActivity>, quiz: Quiz, mission: Mission}
  */
 function lessonPlanAlignmentScenario(): array
 {

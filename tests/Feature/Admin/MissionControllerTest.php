@@ -132,6 +132,26 @@ describe('index', function () {
             ->assertOk()
             ->assertSeeText('No missions match your filters');
     });
+
+    it('renders more missions without more queries', function () {
+        $admin = User::factory()->admin()->create();
+        $queries = function () use ($admin): int {
+            DB::flushQueryLog();
+            DB::enableQueryLog();
+            $this->actingAs($admin)->get(route('admin.missions.index'))->assertOk();
+
+            return count(DB::getQueryLog());
+        };
+        Mission::factory()->for(LearningModule::factory(), 'module')->create();
+        $queries();
+        $single = $queries();
+
+        foreach (Mission::factory()->for(LearningModule::factory(), 'module')->count(4)->create() as $mission) {
+            MissionProgress::factory()->for($mission)->completed()->create();
+        }
+
+        expect($queries())->toBe($single);
+    });
 });
 
 describe('create', function () {

@@ -19,7 +19,7 @@ class StudentImports
     /**
      * How long a commit may hold its lock, in seconds (generous: large imports hash many passwords).
      */
-    private const LOCK_SECONDS = 900;
+    private const LOCK_SECONDS = 600;
 
     /**
      * How many preview rows one page shows.

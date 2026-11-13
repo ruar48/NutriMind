@@ -36,14 +36,11 @@ class AnalyticsController extends Controller
             ->get();
         $subjects = $teacher->assignedSubjects()->orderBy('name')->orderBy('subjects.id')->get();
 
-        $classroom = $classrooms->find($request->classroomId());
-        $subject = $subjects->find($request->subjectId());
-
         return view('teacher.analytics.index', [
             'period' => $period,
             'scope' => $scope,
-            'classroom' => $request->classroomId() === null ? null : $classroom,
-            'subject' => $request->subjectId() === null ? null : $subject,
+            'classroom' => $request->classroomId() === null ? null : $classrooms->find($request->classroomId()),
+            'subject' => $request->subjectId() === null ? null : $subjects->find($request->subjectId()),
             'filters' => [
                 'classroom' => $request->classroomId(),
                 'subject' => $request->subjectId(),

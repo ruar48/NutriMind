@@ -5,6 +5,9 @@ use App\Enums\UserRole;
 use App\Http\Controllers\Admin\RewardController;
 use App\Models\Reward;
 use App\Models\User;
+use App\Services\Content\RewardAppearance;
+use App\View\Components\Icon;
+use Illuminate\Support\Facades\DB;
 
 /**
  * A valid reward form submission.
@@ -113,9 +116,31 @@ describe('index', function () {
             ->assertOk()
             ->assertSeeText('No rewards match your filters');
     });
+
+    it('renders more rewards without more queries', function () {
+        $admin = User::factory()->admin()->create();
+        $queries = function () use ($admin): int {
+            DB::flushQueryLog();
+            DB::enableQueryLog();
+            $this->actingAs($admin)->get(route('admin.rewards.index'))->assertOk();
+
+            return count(DB::getQueryLog());
+        };
+        Reward::factory()->create();
+        $queries();
+        $single = $queries();
+
+        Reward::factory()->count(5)->create()->each(fn (Reward $reward) => $reward->students()->attach(User::factory()->student()->create()));
+
+        expect($queries())->toBe($single);
+    });
 });
 
 describe('create', function () {
+    it('offers only icons of the design system', function () {
+        expect(collect(RewardAppearance::ICONS)->reject(fn (string $icon): bool => Icon::has($icon))->all())->toBe([]);
+    });
+
     it('shows the form with the curated icons and the palette', function () {
         $response = $this->actingAs(User::factory()->admin()->create())->get(route('admin.rewards.create'));
 

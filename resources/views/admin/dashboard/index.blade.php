@@ -133,7 +133,7 @@
         </x-section>
 
         <x-section title="Moderation" description="Parent forum items waiting for an administrator" icon="shield" color="berry">
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2">
                 <x-stat-card label="Open reports" :value="number_format($moderation['reports'])" icon="flag" color="berry" :href="route('admin.forum.reports.index')" data-insights-moderation="reports" />
                 <x-stat-card label="Pending threads" :value="number_format($moderation['pendingThreads'])" icon="clock" color="sun" :href="route('admin.forum.pending.index')" data-insights-moderation="pending" />
             </div>
