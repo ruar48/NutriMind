@@ -23,8 +23,9 @@ use Illuminate\Support\Facades\DB;
  * Classroom summary: one row per covered classroom.
  *
  * Average score = mean of each learner's best attempt per quiz submitted in the classroom (in the period). Quiz
- * completion = submitted (enrolled learner, assigned published or closed quiz) pairs out of enrolled learners ×
- * assigned quizzes; with a period only the quizzes taken in the classroom during the period count. Missions
+ * completion = submitted (enrolled learner, quiz) pairs out of enrolled learners × the classroom's due quizzes:
+ * assigned published quizzes whose due date has passed (or that have no due date) and closed quizzes; with a period
+ * only the due quizzes taken in the classroom during the period count. Missions
  * completed counts enrolled learners' completions of the classroom's subject and grade (in the period). Active
  * learners played the game in the last 7 days.
  */
@@ -77,7 +78,7 @@ final class ClassroomSummaryReport
             columns: $this->columns(),
             rows: $rows,
             notes: array_values(array_filter([
-                'Average score uses each learner’s best attempt per quiz. Quiz completion is the share of assigned published quizzes that enrolled learners have submitted.',
+                'Average score uses each learner’s best attempt per quiz. Quiz completion is the share of due quizzes (past their due date, without a due date, or closed) that enrolled learners have submitted.',
                 'Active learners played the game in the last '.self::ACTIVE_WITHIN_DAYS.' days.',
                 $scope->filters->hasPeriod() ? 'Averages count attempts submitted in the period, quiz completion counts the quizzes taken in the period and missions completed counts completions in the period.' : null,
             ])),
@@ -136,6 +137,10 @@ final class ClassroomSummaryReport
             ->join('quizzes', 'quizzes.id', '=', 'classroom_quiz.quiz_id')
             ->whereIn('classroom_quiz.classroom_id', $scope->classroomIds())
             ->whereIn('quizzes.status', [QuizStatus::Published->value, QuizStatus::Closed->value])
+            ->where(fn (QueryBuilder $due) => $due
+                ->where('quizzes.status', QuizStatus::Closed->value)
+                ->orWhereNull('classroom_quiz.due_at')
+                ->orWhere('classroom_quiz.due_at', '<=', now()))
             ->get(['classroom_quiz.classroom_id', 'classroom_quiz.quiz_id'])
             ->groupBy('classroom_id');
 
@@ -244,7 +249,7 @@ final class ClassroomSummaryReport
                 'leaf',
                 'Each learner’s best attempt per quiz',
             ),
-            ReportStat::percent('Quiz completion', $expected === 0 ? null : round($submitted / $expected * 100, 1), 'clipboard-check', 'teal', $expected === 0 ? 'No published quizzes assigned yet' : number_format($submitted).' of '.number_format($expected).' quizzes submitted'),
+            ReportStat::percent('Quiz completion', $expected === 0 ? null : round($submitted / $expected * 100, 1), 'clipboard-check', 'teal', $expected === 0 ? 'No due quizzes yet' : number_format($submitted).' of '.number_format($expected).' due quizzes submitted'),
         ];
     }
 

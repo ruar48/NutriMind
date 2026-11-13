@@ -7,12 +7,12 @@
     $previewName = (string) old('name', $subject->name);
     $previewCode = \Illuminate\Support\Str::upper((string) old('code', $subject->code));
     $usage = $isEditing ? [
-        'classrooms' => $subject->classrooms_count,
-        'learning modules' => $subject->learning_modules_count,
-        'missions' => $subject->missions_count,
-        'quizzes' => $subject->quizzes_count,
-        'question bank items' => $subject->question_bank_items_count,
-        'lesson plans' => $subject->lesson_plans_count,
+        ':count classroom|:count classrooms' => $subject->classrooms_count,
+        ':count learning module|:count learning modules' => $subject->learning_modules_count,
+        ':count mission|:count missions' => $subject->missions_count,
+        ':count quiz|:count quizzes' => $subject->quizzes_count,
+        ':count question bank item|:count question bank items' => $subject->question_bank_items_count,
+        ':count lesson plan|:count lesson plans' => $subject->lesson_plans_count,
     ] : [];
     $isUsed = array_sum($usage) > 0;
 @endphp
@@ -72,7 +72,7 @@
             <x-form.icon-picker name="icon" label="Icon" :icons="$icons" :value="$subject->icon ?? 'book-open'" required />
 
             <x-slot:aside>
-                <div class="mt-4" aria-live="polite">
+                <div aria-live="polite">
                     <p class="mb-2 text-xs font-semibold tracking-wide text-ink-500 uppercase dark:text-ink-400">Preview</p>
                     <div class="group overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-ink-900/5 dark:bg-ink-900 dark:ring-white/8" data-setup-subject-preview data-color="{{ $previewColor }}">
                         <div aria-hidden="true" class="h-2 bg-linear-to-r group-data-[color=berry]:from-berry-500 group-data-[color=berry]:to-berry-400 group-data-[color=carrot]:from-carrot-500 group-data-[color=carrot]:to-carrot-400 group-data-[color=grape]:from-grape-500 group-data-[color=grape]:to-grape-400 group-data-[color=indigo]:from-indigo-500 group-data-[color=indigo]:to-indigo-400 group-data-[color=leaf]:from-leaf-500 group-data-[color=leaf]:to-leaf-400 group-data-[color=lime]:from-lime-500 group-data-[color=lime]:to-lime-400 group-data-[color=pink]:from-pink-500 group-data-[color=pink]:to-pink-400 group-data-[color=sky]:from-sky-500 group-data-[color=sky]:to-sky-400 group-data-[color=slate]:from-slate-500 group-data-[color=slate]:to-slate-400 group-data-[color=sun]:from-sun-400 group-data-[color=sun]:to-sun-300 group-data-[color=teal]:from-teal-500 group-data-[color=teal]:to-teal-400"></div>
@@ -106,9 +106,9 @@
                     </p>
                     @if ($isUsed)
                         <ul class="mt-2 flex flex-wrap gap-2">
-                            @foreach ($usage as $label => $count)
+                            @foreach ($usage as $nouns => $count)
                                 @if ($count > 0)
-                                    <li><x-badge color="slate">{{ number_format($count) }} {{ $label }}</x-badge></li>
+                                    <li><x-badge color="slate">{{ trans_choice($nouns, $count) }}</x-badge></li>
                                 @endif
                             @endforeach
                         </ul>

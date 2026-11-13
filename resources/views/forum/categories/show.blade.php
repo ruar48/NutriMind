@@ -13,13 +13,11 @@
             ['label' => $category->name],
         ]"
     >
-        <x-slot:meta>
-            <x-subject-chip :name="$category->name" :color="$category->color" :icon="$category->icon" />
-            <x-badge color="slate" icon="messages-square">{{ trans_choice(':count thread|:count threads', $threads->total()) }}</x-badge>
-            @unless ($category->is_active)
+        @unless ($category->is_active)
+            <x-slot:meta>
                 <x-badge color="slate" icon="eye-off">Inactive</x-badge>
-            @endunless
-        </x-slot:meta>
+            </x-slot:meta>
+        @endunless
         <x-slot:actions>
             <x-button variant="secondary" icon="arrow-left" :href="route('forum.index')">All topics</x-button>
             @if ($canStartThread)

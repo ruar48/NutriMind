@@ -9,6 +9,7 @@ use App\Http\Requests\Teacher\UpdateLessonPlanRequest;
 use App\Models\AcademicTerm;
 use App\Models\LearningModule;
 use App\Models\LessonPlan;
+use App\Models\Mission;
 use App\Models\SchoolYear;
 use App\Models\User;
 use App\Services\Content\ContentAlignmentReport;
@@ -118,12 +119,16 @@ class LessonPlanController extends Controller
     public function show(LessonPlan $lessonPlan, LessonPlanAlignmentOptions $options, ContentAlignmentReport $report): View
     {
         $lessonPlan->load(['subject', 'academicTerm.schoolYear', 'module']);
+        $missions = $options->missions($lessonPlan);
 
         return view('teacher.lesson-plans.show', [
             'lessonPlan' => $lessonPlan,
             'activityGroups' => $options->activityGroups($lessonPlan),
             'quizzes' => $options->quizzes($lessonPlan),
-            'missions' => $options->missions($lessonPlan),
+            'missions' => $missions,
+            'suggestedMissionIds' => $missions
+                ->filter(fn (Mission $mission): bool => $options->isSuggestedModule($lessonPlan, $mission->module))
+                ->modelKeys(),
             'aligned' => [
                 'activities' => $lessonPlan->activities()->pluck('learning_activities.id')->map(fn (mixed $id): int => (int) $id)->all(),
                 'quizzes' => $lessonPlan->quizzes()->pluck('quizzes.id')->map(fn (mixed $id): int => (int) $id)->all(),

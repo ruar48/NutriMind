@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\ForumContentStatus;
 use App\Enums\GradeLevel;
 use App\Enums\GuardianRelationship;
 use App\Enums\Permission;
@@ -158,9 +157,8 @@ it('counts this week’s quizzes, rewards and missions since Monday', function (
         ->assertSeeText('Miguel 1 · Sofia 2')
         ->assertSeeText('Miguel 2 · Sofia 1')
         ->assertSeeText('Miguel 1 · Sofia 0');
-    $response->assertViewHas('highlights', fn (array $highlights): bool => $highlights['quizzes']->all() === [$sofia->id => 2, $miguel->id] + [$sofia->id => 2, $miguel->id => 1]
-        && $highlights['rewards']->sum() === 3
-        && $highlights['rewards']->get($miguel->id) === 2
+    $response->assertViewHas('highlights', fn (array $highlights): bool => $highlights['quizzes']->sortKeys()->all() === [$sofia->id => 2, $miguel->id => 1]
+        && $highlights['rewards']->sortKeys()->all() === [$sofia->id => 1, $miguel->id => 2]
         && $highlights['missions']->all() === [$miguel->id => 1]);
 });
 
@@ -251,7 +249,8 @@ it('shows the cards without progress when the school turned child progress off',
         ->assertDontSeeText('XP earned')
         ->assertDontSee('data-week-highlights', false)
         ->assertDontSee(route('parent.children.show', $sofia), false)
-        ->assertDontSee('href="'.route('parent.children.index').'"', false);
+        ->assertDontSeeText('All children')
+        ->assertDontSeeText('View progress');
     $response->assertViewHas('cards', fn (array $cards): bool => $cards[0]['stats'] === null);
 });
 
@@ -285,10 +284,10 @@ it('lists the latest forum threads the parent may open', function () {
     $response->assertViewHas('threads', fn ($threads): bool => $threads->modelKeys() === [$ownPending->id, $recipes->id]);
 });
 
-it('hides the forum section when the parent cannot open the forum', function (Closure $closeForum) {
+it('hides the forum section while the forum is turned off', function () {
     $parent = User::factory()->parent()->create();
     ForumThread::factory()->create(['title' => 'Five-minute vegetable omelette']);
-    $closeForum();
+    app(Settings::class)->set('forum_enabled', false);
 
     $this->actingAs($parent)
         ->get(route('parent.dashboard'))
@@ -296,10 +295,20 @@ it('hides the forum section when the parent cannot open the forum', function (Cl
         ->assertDontSee('data-dashboard-forum', false)
         ->assertDontSeeText('Five-minute vegetable omelette')
         ->assertDontSee('href="'.route('forum.index').'"', false);
-})->with([
-    'forum turned off' => fn () => fn () => app(Settings::class)->set('forum_enabled', false),
-    'forum access revoked' => fn () => fn () => app(RolePermissions::class)->revoke(UserRole::Parent, Permission::AccessForum),
-]);
+});
+
+it('hides the forum section from parents without forum access', function () {
+    $parent = User::factory()->parent()->create();
+    ForumThread::factory()->create(['title' => 'Five-minute vegetable omelette']);
+    app(RolePermissions::class)->revoke(UserRole::Parent, Permission::AccessForum);
+
+    $this->actingAs($parent)
+        ->get(route('parent.dashboard'))
+        ->assertOk()
+        ->assertDontSee('data-dashboard-forum', false)
+        ->assertDontSeeText('Five-minute vegetable omelette')
+        ->assertDontSee('href="'.route('forum.index').'"', false);
+});
 
 it('hides the new thread button from parents who may not post', function () {
     $parent = User::factory()->parent()->create();
@@ -355,7 +364,6 @@ it('runs the same number of queries however long the children’s history is', f
     $parent = User::factory()->parent()->guardianOf($sofia)->guardianOf($miguel)->create();
     $classroom = Classroom::factory()->create(['grade_level' => GradeLevel::Five]);
     $classroom->students()->attach($sofia);
-    ForumThread::factory()->create();
 
     $countQueries = function () use ($parent): int {
         DB::flushQueryLog();
@@ -365,18 +373,19 @@ it('runs the same number of queries however long the children’s history is', f
 
         return count(DB::getQueryLog());
     };
+    $addHistory = function (int $times) use ($sofia, $miguel, $classroom): void {
+        foreach ([$sofia, $miguel] as $child) {
+            QuizAttempt::factory()->count($times)->for($child, 'student')->for($classroom)->create();
+            LearnerFeedback::factory()->count($times)->for($child, 'student')->create();
+            MissionProgress::factory()->completed()->count($times)->for($child, 'student')->create();
+            $child->rewards()->attach(Reward::factory()->count($times)->create());
+        }
+        ForumThread::factory()->count($times)->create();
+    };
 
-    QuizAttempt::factory()->for($sofia, 'student')->for($classroom)->create();
-    LearnerFeedback::factory()->for($sofia, 'student')->create();
+    $addHistory(1);
     $before = $countQueries();
-
-    foreach ([$sofia, $miguel] as $child) {
-        QuizAttempt::factory()->count(4)->for($child, 'student')->create();
-        LearnerFeedback::factory()->count(3)->for($child, 'student')->create();
-        MissionProgress::factory()->completed()->count(2)->for($child, 'student')->create();
-        $child->rewards()->attach(Reward::factory()->count(2)->create());
-    }
-    ForumThread::factory()->count(6)->create();
+    $addHistory(4);
 
     expect($countQueries())->toBe($before);
 });

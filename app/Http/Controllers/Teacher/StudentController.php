@@ -49,6 +49,7 @@ class StudentController extends Controller
             'classrooms' => $classrooms,
             'classroom' => $classroom,
             'band' => $band,
+            'canGiveFeedback' => $request->user()->can('create', LearnerFeedback::class),
             'roster' => $roster->build(
                 $classroom === null ? $classrooms : new EloquentCollection([$classroom]),
                 $band,

@@ -37,8 +37,6 @@ class ReplyController extends Controller
     #[Authorize('update', 'reply')]
     public function edit(ForumReply $reply, ForumPosting $posting): View
     {
-        $reply->load('thread.category');
-
         return view('forum.replies.edit', [
             'reply' => $reply,
             'replyUrl' => $posting->replyUrl($reply),

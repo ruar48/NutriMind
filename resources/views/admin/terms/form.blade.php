@@ -41,7 +41,7 @@
             <x-form.input name="ends_on" type="date" label="End date" :value="$term->ends_on" :min="$schoolYear->starts_on->format('Y-m-d')" :max="$schoolYear->ends_on->format('Y-m-d')" :hint="'On or before '.$schoolYear->ends_on->format('M j, Y').'.'" required />
 
             <x-slot:aside>
-                <div class="mt-4 flex flex-col gap-2" data-other-terms>
+                <div class="flex flex-col gap-2" data-other-terms>
                     <p class="text-xs font-semibold tracking-wide text-ink-500 uppercase dark:text-ink-400">Other quarters</p>
                     @forelse ($otherTerms as $otherTerm)
                         <div class="flex items-center justify-between gap-3 rounded-xl bg-white px-3 py-2 text-sm ring-1 ring-ink-900/5 dark:bg-white/3 dark:ring-white/8">

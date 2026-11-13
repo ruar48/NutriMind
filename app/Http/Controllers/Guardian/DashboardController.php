@@ -14,6 +14,7 @@ use App\Services\LearnerProgressService;
 use App\Services\LearnerProgressSummary;
 use App\Services\Settings;
 use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Carbon\WeekDay;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -124,7 +125,7 @@ class DashboardController extends Controller
     /**
      * Pick the figures a child card shows from the learner's progress summary (null while progress is hidden).
      *
-     * @return array{levelProgress: array{level: int, into: int, needed: int, percent: float}, maxLevel: int, totalPoints: int, averageScore: float|null, quizzesTaken: int, missionsCompleted: int, lastActiveAt: \Carbon\CarbonInterface|null, syncOverdue: bool}|null
+     * @return array{levelProgress: array{level: int, into: int, needed: int, percent: float}, maxLevel: int, totalPoints: int, averageScore: float|null, quizzesTaken: int, missionsCompleted: int, lastActiveAt: CarbonInterface|null, syncOverdue: bool}|null
      */
     private function cardStats(?LearnerProgressSummary $summary): ?array
     {

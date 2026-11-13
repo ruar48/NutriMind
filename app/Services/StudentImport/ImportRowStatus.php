@@ -39,6 +39,19 @@ enum ImportRowStatus: string
     }
 
     /**
+     * Get the title shown when no row has this status.
+     */
+    public function emptyTitle(): string
+    {
+        return match ($this) {
+            self::Create => 'No new learners',
+            self::Enroll => 'No existing learners to enroll',
+            self::Skip => 'No skipped rows',
+            self::Error => 'No rows with errors',
+        };
+    }
+
+    /**
      * Get one sentence that explains the status.
      */
     public function description(): string

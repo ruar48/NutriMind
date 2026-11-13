@@ -113,11 +113,15 @@
                 @php
                     $isCurrent = $mode === $classroom->learning_mode;
                 @endphp
-                <li @class([
-                    'flex items-start gap-3 rounded-xl p-3 ring-1 ring-inset',
-                    'bg-leaf-50/60 ring-leaf-500/40 dark:bg-leaf-400/10 dark:ring-leaf-400/40' => $isCurrent,
-                    'ring-ink-900/8 dark:ring-white/8' => ! $isCurrent,
-                ]) @if ($isCurrent) aria-current="true" @endif data-learning-mode="{{ $mode->value }}">
+                <li
+                    data-learning-mode="{{ $mode->value }}"
+                    aria-current="{{ $isCurrent ? 'true' : 'false' }}"
+                    @class([
+                        'flex items-start gap-3 rounded-xl p-3 ring-1 ring-inset',
+                        'bg-leaf-50/60 ring-leaf-500/40 dark:bg-leaf-400/10 dark:ring-leaf-400/40' => $isCurrent,
+                        'ring-ink-900/8 dark:ring-white/8' => ! $isCurrent,
+                    ])
+                >
                     <span @class(['grid size-10 shrink-0 place-items-center rounded-xl', $modeTones[$mode->color()] ?? $modeTones['leaf']])>
                         <x-icon :name="$mode->icon()" class="size-5" />
                     </span>
