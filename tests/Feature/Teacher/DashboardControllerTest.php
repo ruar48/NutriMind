@@ -71,18 +71,23 @@ it('shows only the teacher’s own classrooms, learners and results', function (
         ->assertDontSeeText($school->dina->name);
 });
 
-it('links only the attempts at the teacher’s own quizzes', function () {
+it('links only the attempts and due quizzes that are the teacher’s own', function () {
     $school = AnalyticsSchoolFixture::create();
     $own = QuizAttempt::query()->whereBelongsTo($school->plateQuiz)->whereBelongsTo($school->ben, 'student')->sole();
     $foreignQuiz = Quiz::factory()->published()->for($school->ramon, 'teacher')->for($school->health)->create(['title' => 'Guest Quiz']);
     $foreign = QuizAttempt::factory()->for($foreignQuiz)->for($school->ben, 'student')->for($school->health5)->create(['submitted_at' => now()->subMinute()]);
+    $school->health5->quizzes()->updateExistingPivot($school->plateQuiz->id, ['due_at' => now()->addDays(2)]);
+    $school->health5->quizzes()->updateExistingPivot($foreignQuiz->id, ['due_at' => now()->addDays(3)]);
 
     $this->actingAs($school->teresa)
         ->get(route('teacher.dashboard'))
         ->assertOk()
         ->assertSeeText('Guest Quiz')
+        ->assertSee('data-insights-due="'.$foreignQuiz->id.'"', false)
         ->assertSee(route('teacher.attempts.show', $own), false)
-        ->assertDontSee(route('teacher.attempts.show', $foreign), false);
+        ->assertDontSee(route('teacher.attempts.show', $foreign), false)
+        ->assertSee(route('teacher.quizzes.show', $school->plateQuiz), false)
+        ->assertDontSee(route('teacher.quizzes.show', $foreignQuiz), false);
 });
 
 it('shows the quizzes due this week and soon with their submissions', function () {

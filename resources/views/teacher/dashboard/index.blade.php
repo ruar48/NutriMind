@@ -143,10 +143,17 @@
             @else
                 <ul class="flex flex-col gap-3">
                     @foreach ($dueSoon as $item)
+                        @php
+                            $dueQuizUrl = $quizUrl($item['quiz']);
+                        @endphp
                         <li class="rounded-2xl p-4 ring-1 ring-ink-900/8 ring-inset dark:ring-white/10" data-insights-due="{{ $item['quiz']->id }}">
                             <div class="flex items-start justify-between gap-3">
                                 <div class="min-w-0">
-                                    <a href="{{ route('teacher.quizzes.show', $item['quiz']) }}" class="block truncate text-sm font-semibold text-ink-900 hover:underline dark:text-ink-50">{{ $item['quiz']->title }}</a>
+                                    @if ($dueQuizUrl)
+                                        <a href="{{ $dueQuizUrl }}" class="block truncate text-sm font-semibold text-ink-900 hover:underline dark:text-ink-50">{{ $item['quiz']->title }}</a>
+                                    @else
+                                        <p class="truncate text-sm font-semibold text-ink-900 dark:text-ink-50">{{ $item['quiz']->title }}</p>
+                                    @endif
                                     <p class="truncate text-xs text-ink-500 dark:text-ink-400">{{ $item['classroom']->name }} · {{ $item['quiz']->subject->name }}</p>
                                 </div>
                                 <time class="shrink-0 rounded-full bg-sun-50 px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-sun-800 dark:bg-sun-400/10 dark:text-sun-200" datetime="{{ $item['dueAt']->toIso8601String() }}" title="Due {{ $item['dueAt']->format('M j, Y g:i A') }}">

@@ -61,6 +61,9 @@ class DashboardController extends Controller
             'attemptUrl' => fn (QuizAttempt $attempt): ?string => $attempt->quiz->teacher()->is($teacher)
                 ? route('teacher.attempts.show', $attempt)
                 : null,
+            'quizUrl' => fn (Quiz $quiz): ?string => $quiz->teacher()->is($teacher)
+                ? route('teacher.quizzes.show', $quiz)
+                : null,
             'can' => [
                 'createQuiz' => $teacher->can('create', Quiz::class),
                 'createClassroom' => $teacher->can('create', Classroom::class),

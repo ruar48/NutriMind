@@ -11,6 +11,7 @@ use App\Models\LearningModule;
 use App\Models\LessonPlan;
 use App\Models\Mission;
 use App\Models\SchoolYear;
+use App\Models\Subject;
 use App\Models\User;
 use App\Services\Content\ContentAlignmentReport;
 use App\Services\Content\LessonPlanAlignmentOptions;
@@ -75,7 +76,7 @@ class LessonPlanController extends Controller
             'lessonPlans' => $lessonPlans,
             'filters' => $filters,
             'summary' => $this->summary($teacher),
-            'subjectOptions' => $teacher->assignedSubjects->sortBy('name')->mapWithKeys(fn ($subject): array => [$subject->getKey() => $subject->name]),
+            'subjectOptions' => $teacher->assignedSubjects->sortBy('name')->mapWithKeys(fn (Subject $subject): array => [$subject->getKey() => $subject->name]),
             'termOptions' => $this->termFilterOptions(),
         ]);
     }
@@ -303,7 +304,7 @@ class LessonPlanController extends Controller
             ->get();
 
         return [
-            'subjectOptions' => $subjects->mapWithKeys(fn ($subject): array => [
+            'subjectOptions' => $subjects->mapWithKeys(fn (Subject $subject): array => [
                 $subject->getKey() => $subject->is_active ? $subject->name : $subject->name.' (inactive)',
             ]),
             'termOptions' => $terms->mapWithKeys(fn (AcademicTerm $term): array => [

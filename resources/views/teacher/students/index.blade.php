@@ -69,6 +69,7 @@
                 icon="wifi-off"
                 color="sun"
                 hint="Never synced or not for 7+ days"
+                :href="route('teacher.students.index', array_filter(['classroom' => $classroom?->getKey(), 'sort' => 'last_synced', 'direction' => 'asc']))"
                 data-animate
                 style="--stagger: 4"
             />

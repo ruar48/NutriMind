@@ -9,6 +9,7 @@ use App\Models\Mission;
 use App\Models\MissionProgress;
 use App\Models\Subject;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 
 /**
  * A Health teacher with Grade 5 Sampaguita (3 learners) and Grade 6 Narra (2 learners), and three Health missions:
@@ -154,6 +155,37 @@ describe('index', function () {
         $response = $this->actingAs($teacher)->get(route('teacher.missions.index', ['page' => 2]));
 
         expect($response->viewData('missions')->pluck('title')->all())->toBe(['Mission 16']);
+    });
+
+    it('shows when each dated mission runs', function (?string $startsOn, ?string $endsOn, string $expected) {
+        $this->travelTo(CarbonImmutable::parse('2026-11-13 10:00:00'));
+        $subject = Subject::factory()->create();
+        $teacher = User::factory()->teaching($subject)->create();
+        Mission::factory()->for($subject)->create(['starts_on' => $startsOn, 'ends_on' => $endsOn]);
+
+        $this->actingAs($teacher)
+            ->get(route('teacher.missions.index'))
+            ->assertOk()
+            ->assertSeeText($expected);
+    })->with([
+        'ended' => ['2026-10-12', '2026-11-06', 'Ended Nov 6, 2026'],
+        'ends today' => ['2026-11-09', '2026-11-13', 'Running until Nov 13, 2026'],
+        'upcoming' => ['2026-11-23', '2026-11-27', 'Starts Nov 23, 2026'],
+        'open-ended' => ['2026-11-01', null, 'Running since Nov 1, 2026'],
+        'no start date' => [null, '2026-11-20', 'Running until Nov 20, 2026'],
+    ]);
+
+    it('shows no schedule for an undated mission', function () {
+        $subject = Subject::factory()->create();
+        $teacher = User::factory()->teaching($subject)->create();
+        Mission::factory()->for($subject)->create(['starts_on' => null, 'ends_on' => null]);
+
+        $this->actingAs($teacher)
+            ->get(route('teacher.missions.index'))
+            ->assertOk()
+            ->assertDontSeeText('Running')
+            ->assertDontSeeText('Ended')
+            ->assertDontSeeText('Starts');
     });
 });
 

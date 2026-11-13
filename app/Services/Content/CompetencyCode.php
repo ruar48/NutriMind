@@ -7,8 +7,8 @@ use Illuminate\Support\Str;
 /**
  * DepEd learning-competency codes (e.g. "H5N-IIa-1") as stored and compared by the content area.
  *
- * Codes are saved trimmed and uppercased, and always compared case-insensitively, so codes typed in either
- * case (or saved before normalization) still match.
+ * Codes are saved squished and uppercased, and always compared trimmed and case-insensitively, so codes typed
+ * in either case (or saved before normalization, like the seeded "H5N-IIa-1") still match.
  */
 final class CompetencyCode
 {
