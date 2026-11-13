@@ -120,6 +120,17 @@ class ForumPosting
     }
 
     /**
+     * Get the link to a page of the thread's replies; a page past the end becomes the last page.
+     */
+    public function threadUrl(ForumThread $thread, int $page = 1): string
+    {
+        $lastPage = max(1, (int) ceil($thread->replies()->count() / self::REPLIES_PER_PAGE));
+        $page = min(max(1, $page), $lastPage);
+
+        return route('forum.threads.show', $page > 1 ? ['thread' => $thread, 'page' => $page] : ['thread' => $thread]);
+    }
+
+    /**
      * Get the link to the reply: its page of the thread, scrolled to the reply.
      */
     public function replyUrl(ForumReply $reply): string

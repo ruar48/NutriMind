@@ -84,13 +84,7 @@ class IndexStudentRequest extends FormRequest
      */
     public function students(): Builder
     {
-        $query = User::query()
-            ->ofRole(UserRole::Student)
-            ->when($this->search(), fn (Builder $query, string $term): Builder => $query->where(
-                fn (Builder $query): Builder => $query
-                    ->search($term)
-                    ->orWhereHas('studentProfile', fn (Builder $profile): Builder => $profile->whereLike('lrn', '%'.$term.'%')),
-            ))
+        $query = $this->constrainStatus($this->constrainSearch(User::query()->ofRole(UserRole::Student), includeLrn: true))
             ->when($this->grade(), fn (Builder $query, GradeLevel $grade): Builder => $query->whereHas(
                 'studentProfile',
                 fn (Builder $profile): Builder => $profile->where('grade_level', $grade),
@@ -99,7 +93,6 @@ class IndexStudentRequest extends FormRequest
                 'enrolledClassrooms',
                 fn (Builder $classroom): Builder => $classroom->whereKey($classroomId),
             ))
-            ->when($this->status(), fn (Builder $query, string $status): Builder => $query->where('users.is_active', $status === 'active'))
             ->when($this->guardian() === 'yes', fn (Builder $query): Builder => $query->has('guardians'))
             ->when($this->guardian() === 'no', fn (Builder $query): Builder => $query->doesntHave('guardians'));
 

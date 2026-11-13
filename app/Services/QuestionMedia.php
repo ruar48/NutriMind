@@ -127,8 +127,9 @@ class QuestionMedia
      * or the surrounding transaction rolls back; replaced and removed files are deleted after the change commits.
      *
      * @param  array{image?: ?UploadedFile, remove_image?: bool, video?: ?UploadedFile, remove_video?: bool}  $input
+     * @return bool Whether the question is new or anything about it changed.
      */
-    public function save(QuizQuestion|QuestionBankItem $question, array $input): void
+    public function save(QuizQuestion|QuestionBankItem $question, array $input): bool
     {
         $stored = [];
         $replaced = [];
@@ -147,6 +148,7 @@ class QuestionMedia
                 }
             }
 
+            $changed = ! $question->exists || $question->isDirty();
             $question->save();
         } catch (Throwable $exception) {
             $this->disk()->delete($stored);
@@ -156,6 +158,8 @@ class QuestionMedia
 
         $this->discardOnRollBack($stored);
         $this->delete(...$replaced);
+
+        return $changed;
     }
 
     /**

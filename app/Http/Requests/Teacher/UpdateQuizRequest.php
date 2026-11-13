@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Teacher;
 
+use App\Enums\GradeLevel;
 use App\Models\Quiz;
 use App\Models\Subject;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -129,7 +130,7 @@ class UpdateQuizRequest extends QuizSettingsRequest
         $this->teacher()->assignedSubjectIds();
 
         return $this->teacher()->assignedSubjects
-            ->filter(fn (Subject $subject): bool => $subject->is_active || $subject->is($this->quiz()->subject()->getParent()->subject ?? null) || (int) $subject->getKey() === (int) $this->quiz()->subject_id)
+            ->filter(fn (Subject $subject): bool => $subject->is_active || (int) $subject->getKey() === (int) $this->quiz()->subject_id)
             ->map(fn (Subject $subject): int => (int) $subject->getKey())
             ->values()
             ->all();
@@ -162,9 +163,19 @@ class UpdateQuizRequest extends QuizSettingsRequest
     /**
      * Get the grade level the quiz will have once saved; it cannot change once learners attempted the quiz.
      */
-    protected function effectiveGradeLevel(): ?\App\Enums\GradeLevel
+    protected function effectiveGradeLevel(): ?GradeLevel
     {
         return $this->hasAttempts() ? $this->quiz()->grade_level : parent::effectiveGradeLevel();
+    }
+
+    /**
+     * Get the classroom ids sent in the form (read by the after hooks once the ids passed their rules).
+     *
+     * @return list<int>
+     */
+    private function submittedClassroomIds(): array
+    {
+        return array_values(array_map(fn (mixed $id): int => (int) $id, Arr::wrap($this->input('classroom_ids', []))));
     }
 
     /**
@@ -211,7 +222,7 @@ class UpdateQuizRequest extends QuizSettingsRequest
         $removed = $quiz->classrooms()
             ->active()
             ->whereIn('classrooms.id', $quiz->attempts()->whereNotNull('classroom_id')->select('classroom_id'))
-            ->whereNotIn('classrooms.id', $this->classroomIds())
+            ->whereNotIn('classrooms.id', $this->submittedClassroomIds())
             ->orderBy('classrooms.name')
             ->pluck('classrooms.name')
             ->all();
@@ -232,7 +243,7 @@ class UpdateQuizRequest extends QuizSettingsRequest
             return;
         }
 
-        if ($this->classroomIds() === []) {
+        if ($this->submittedClassroomIds() === []) {
             $validator->errors()->add('classroom_ids', self::PUBLISHED_NEEDS_CLASSROOM_MESSAGE);
         }
     }

@@ -2,28 +2,19 @@
 
 namespace App\Http\Requests\Teacher;
 
-use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Models\QuestionBankItem;
+use App\Models\QuizQuestion;
 
-class UpdateQuizQuestionRequest extends FormRequest
+/**
+ * Validates changes to a question of a draft quiz.
+ */
+class UpdateQuizQuestionRequest extends StoreQuizQuestionRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Get the question being edited.
      */
-    public function authorize(): bool
+    protected function currentQuestion(): QuizQuestion|QuestionBankItem|null
     {
-        return false;
-    }
-
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
-    public function rules(): array
-    {
-        return [
-            //
-        ];
+        return $this->route('question');
     }
 }

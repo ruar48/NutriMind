@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Admin\Concerns;
 
+use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 /**
@@ -24,6 +26,41 @@ trait ReadsPeopleListFilters
         $term = Str::substr(Str::squish($value), 0, 100);
 
         return $term === '' ? null : $term;
+    }
+
+    /**
+     * Limit the account query to the search term (name, email or username; with $includeLrn also a learner's LRN).
+     *
+     * @param  Builder<User>  $query
+     * @return Builder<User>
+     */
+    public function constrainSearch(Builder $query, bool $includeLrn = false): Builder
+    {
+        $term = $this->search();
+
+        if ($term === null) {
+            return $query;
+        }
+
+        return $query->where(fn (Builder $query): Builder => $query
+            ->search($term)
+            ->when($includeLrn, fn (Builder $query): Builder => $query->orWhereHas(
+                'studentProfile',
+                fn (Builder $profile): Builder => $profile->whereLike('lrn', '%'.$term.'%'),
+            )));
+    }
+
+    /**
+     * Limit the account query to the status filter.
+     *
+     * @param  Builder<User>  $query
+     * @return Builder<User>
+     */
+    public function constrainStatus(Builder $query): Builder
+    {
+        $status = $this->status();
+
+        return $status === null ? $query : $query->where($query->qualifyColumn('is_active'), $status === 'active');
     }
 
     /**

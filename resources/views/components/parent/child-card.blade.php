@@ -20,12 +20,12 @@
     $lastActiveAt = $stats['lastActiveAt'] ?? null;
 @endphp
 
-<x-card padding="none" {{ $attributes->class('flex h-full flex-col') }} data-child-card="{{ $student->getKey() }}">
-    <div class="flex flex-1 flex-col gap-5 p-5 sm:p-6">
+<x-card padding="none" {{ $attributes }} data-child-card="{{ $student->getKey() }}">
+    <div class="flex flex-col gap-5 p-5 sm:p-6">
         <div class="flex min-w-0 items-start gap-4">
             <x-avatar :name="$student->name" size="lg" />
             <div class="min-w-0 flex-1">
-                <{{ $headingTag }} class="font-display text-lg font-bold tracking-tight break-words text-ink-950 dark:text-white">
+                <{{ $headingTag }} class="font-display text-lg font-bold tracking-tight wrap-break-word text-ink-950 dark:text-white">
                     @if ($href)
                         <a href="{{ $href }}" class="rounded hover:text-carrot-700 hover:underline dark:hover:text-carrot-300">{{ $student->name }}</a>
                     @else
@@ -77,6 +77,13 @@
                         XP earned
                     </p>
                     <x-xp-bar :progress="$stats['levelProgress']" :max-level="$stats['maxLevel']" size="sm" :show-labels="false" class="mt-1.5" />
+                    <p class="mt-1 text-[11px] text-ink-500 tabular-nums dark:text-ink-400">
+                        @if ($stats['levelProgress']['needed'] === 0)
+                            Level {{ $stats['levelProgress']['level'] }} · Max level reached
+                        @else
+                            Level {{ $stats['levelProgress']['level'] }} · {{ number_format($stats['levelProgress']['needed'] - $stats['levelProgress']['into']) }} XP to level {{ $stats['levelProgress']['level'] + 1 }}
+                        @endif
+                    </p>
                 </div>
             </div>
 

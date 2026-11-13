@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Services\Forum\ForumModeration;
 use App\Services\Forum\ForumPosting;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
@@ -90,7 +91,6 @@ class ThreadController extends Controller
             'reportedReplyIds' => $ownReports->filter()->map(fn (mixed $id): int => (int) $id)->values()->all(),
             'threadOpenReports' => $openReports->get('thread', 0),
             'replyOpenReports' => $openReports->except('thread')->all(),
-            'quotedTitle' => app(ForumModeration::class)->quotedTitle($thread),
         ]);
     }
 
@@ -133,9 +133,9 @@ class ThreadController extends Controller
     /**
      * Get the categories a thread can be posted in: the active ones, plus the thread's own category.
      *
-     * @return Collection<int, ForumCategory>
+     * @return EloquentCollection<int, ForumCategory>
      */
-    private function categories(?ForumThread $thread = null): Collection
+    private function categories(?ForumThread $thread = null): EloquentCollection
     {
         return ForumCategory::query()
             ->where(function (Builder $query) use ($thread): void {
@@ -145,8 +145,7 @@ class ThreadController extends Controller
             ->orderBy('sort_order')
             ->orderBy('name')
             ->orderBy('id')
-            ->get(['id', 'name', 'slug'])
-            ->toBase();
+            ->get(['id', 'name', 'slug']);
     }
 
     /**

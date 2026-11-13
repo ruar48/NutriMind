@@ -2,28 +2,41 @@
 
 namespace App\Http\Requests\Admin;
 
-use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Models\Reward;
+use App\Services\Content\RewardAppearance;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Unique;
 
-class UpdateRewardRequest extends FormRequest
+/**
+ * Validates an edited reward: the same rules as a new one, except that the reward keeps its own name and may
+ * keep an icon chosen before the curated set changed.
+ */
+class UpdateRewardRequest extends StoreRewardRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Get the rule that keeps reward names unique, ignoring this reward.
      */
-    public function authorize(): bool
+    protected function uniqueNameRule(): Unique
     {
-        return false;
+        return Rule::unique('rewards', 'name')->ignore($this->reward());
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the icons the reward may use: the curated set plus its current icon.
      *
-     * @return array<string, ValidationRule|array<mixed>|string>
+     * @return list<string>
      */
-    public function rules(): array
+    protected function allowedIcons(): array
     {
-        return [
-            //
-        ];
+        return array_values(array_unique([...RewardAppearance::ICONS, $this->reward()->icon]));
+    }
+
+    /**
+     * Get the reward being edited.
+     */
+    private function reward(): Reward
+    {
+        /** @var Reward */
+        return $this->route('reward');
     }
 }

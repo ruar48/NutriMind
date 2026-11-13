@@ -2,28 +2,44 @@
 
 namespace App\Http\Requests\Teacher;
 
-use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Models\QuestionBankItem;
+use App\Models\QuizQuestion;
+use App\Models\Subject;
 
-class UpdateQuestionBankItemRequest extends FormRequest
+/**
+ * Validates changes to a question bank item the teacher owns.
+ */
+class UpdateQuestionBankItemRequest extends StoreQuestionBankItemRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Get the item being edited.
      */
-    public function authorize(): bool
+    public function item(): QuestionBankItem
     {
-        return false;
+        return $this->route('item');
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the subject ids the item may use: the teacher's active assigned subjects and its current subject.
      *
-     * @return array<string, ValidationRule|array<mixed>|string>
+     * @return list<int>
      */
-    public function rules(): array
+    protected function allowedSubjectIds(): array
     {
-        return [
-            //
-        ];
+        $currentSubjectId = (int) $this->item()->subject_id;
+
+        return $this->assignedSubjects()
+            ->filter(fn (Subject $subject): bool => $subject->is_active || (int) $subject->getKey() === $currentSubjectId)
+            ->map(fn (Subject $subject): int => (int) $subject->getKey())
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Get the item being edited.
+     */
+    protected function currentQuestion(): QuizQuestion|QuestionBankItem|null
+    {
+        return $this->item();
     }
 }

@@ -2,19 +2,16 @@
 
 namespace App\Http\Requests\Teacher;
 
+use App\Models\LearnerFeedback;
+use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateFeedbackRequest extends FormRequest
+/**
+ * Validates changes to learner feedback. The learner cannot change; the classroom and attempt are always checked
+ * against the feedback's learner and the teacher.
+ */
+class UpdateFeedbackRequest extends StoreFeedbackRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return false;
-    }
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -22,8 +19,25 @@ class UpdateFeedbackRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            //
-        ];
+        return $this->feedbackRules();
+    }
+
+    /**
+     * Get the learner the feedback is about.
+     */
+    protected function feedbackStudent(): ?User
+    {
+        $feedback = $this->route('feedback');
+
+        return $feedback instanceof LearnerFeedback ? $feedback->student : null;
+    }
+
+    /**
+     * The checks always apply: the feedback stays editable after the learner leaves the teacher's classrooms, and its
+     * classroom and attempt must still be the teacher's.
+     */
+    protected function checksTargetsOf(User $student): bool
+    {
+        return true;
     }
 }

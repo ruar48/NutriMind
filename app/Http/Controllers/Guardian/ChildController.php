@@ -116,6 +116,7 @@ class ChildController extends Controller
                 ];
             })->all(),
             'showFilters' => $search !== null || $grade !== null || $parent->linkedStudents()->count() > self::FILTER_THRESHOLD,
+            'filters' => ['grade' => $grade?->value],
             'isFiltered' => $search !== null || $grade !== null,
         ]);
     }
@@ -253,6 +254,14 @@ class ChildController extends Controller
         return [
             'attempts' => $attempts,
             'subjectOptions' => $subjectOptions->all(),
+            'filters' => [
+                'subject' => $subjectId,
+                'result' => match ($passed) {
+                    true => ShowChildRequest::RESULT_PASSED,
+                    false => ShowChildRequest::RESULT_NOT_PASSED,
+                    null => null,
+                },
+            ],
             'isFiltered' => $subjectId !== null || $passed !== null,
         ];
     }
@@ -294,6 +303,7 @@ class ChildController extends Controller
             'statusOptions' => collect(ShowChildRequest::MISSION_STATUSES)
                 ->mapWithKeys(fn (ProgressStatus $status): array => [$status->value => $status->label()])
                 ->all(),
+            'filters' => ['subject' => $subjectId, 'status' => $status?->value],
             'isFiltered' => $subjectId !== null || $status !== null,
         ];
     }
@@ -337,6 +347,7 @@ class ChildController extends Controller
                 && $message->quizAttempt->submitted_at !== null
                     ? $attemptUrl($message->quizAttempt)
                     : null,
+            'filters' => ['type' => $type?->value],
             'isFiltered' => $type !== null,
         ];
     }
@@ -361,6 +372,7 @@ class ChildController extends Controller
                 ->orderBy('name')
                 ->orderBy('id')
                 ->get(),
+            'filters' => ['reward_type' => $type?->value],
             'isFiltered' => $type !== null,
         ];
     }
