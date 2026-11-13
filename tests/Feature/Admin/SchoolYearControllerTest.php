@@ -89,6 +89,15 @@ describe('index', function () {
         'unknown status is ignored' => [['status' => 'later'], ['2027–2028', '2026–2027', '2025–2026']],
     ]);
 
+    it('ignores filters that are not text', function () {
+        SchoolYear::factory()->count(2)->create();
+
+        $response = $this->actingAs($this->admin)->get(route('admin.school-years.index', ['search' => ['2026'], 'status' => ['active']]));
+
+        $response->assertOk();
+        expect($response->viewData('schoolYears'))->toHaveCount(2);
+    });
+
     it('counts a school year that starts today as in session, not upcoming', function () {
         SchoolYear::factory()->create(['name' => '2026–2027', 'starts_on' => '2026-11-13', 'ends_on' => '2027-06-30']);
 

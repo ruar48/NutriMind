@@ -118,6 +118,15 @@ describe('index', function () {
             ->assertSeeText('No subjects match your filters');
     });
 
+    it('ignores filters that are not text', function () {
+        Subject::factory()->count(2)->create();
+
+        $response = $this->actingAs($this->admin)->get(route('admin.subjects.index', ['search' => ['health'], 'status' => ['active']]));
+
+        $response->assertOk();
+        expect($response->viewData('subjects'))->toHaveCount(2);
+    });
+
     it('paginates twelve subjects per page', function () {
         Subject::factory()->count(13)->create();
 

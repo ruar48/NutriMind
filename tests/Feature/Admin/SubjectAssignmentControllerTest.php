@@ -100,6 +100,19 @@ describe('index', function () {
         'unknown coverage is ignored' => [fn () => ['coverage' => 'everyone'], ['Ana Reyes', 'Ben Cruz', 'Carla Diaz']],
     ]);
 
+    it('ignores filters that are not text', function () {
+        User::factory()->teacher()->count(2)->create();
+
+        $response = $this->actingAs($this->admin)->get(route('admin.subject-assignments.index', [
+            'search' => ['ana'],
+            'coverage' => ['unassigned'],
+            'subject' => ['1'],
+        ]));
+
+        $response->assertOk();
+        expect($response->viewData('teachers'))->toHaveCount(2);
+    });
+
     it('invites the administrator to add teachers when there are none', function () {
         $this->actingAs($this->admin)
             ->get(route('admin.subject-assignments.index'))
