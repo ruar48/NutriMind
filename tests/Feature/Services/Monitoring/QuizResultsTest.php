@@ -27,13 +27,13 @@ function quizResultsServiceSetup(): array
     $quiz->classrooms()->attach($classroom);
 
     $attempt = function (User $student, float $percentage, array $answers = [], array $attributes = []) use ($quiz, $classroom): QuizAttempt {
-        $attempt = QuizAttempt::factory()->for($quiz)->for($student, 'student')->create([
+        $attempt = QuizAttempt::factory()->for($quiz)->for($student, 'student')->create(array_merge([
             'classroom_id' => $classroom->id,
             'score' => (int) round($percentage),
             'max_score' => 100,
             'percentage' => $percentage,
             'passed' => $percentage >= 75,
-        ] + $attributes);
+        ], $attributes));
 
         foreach ($answers as $questionId => $answer) {
             $question = QuizQuestion::query()->findOrFail($questionId);
@@ -104,7 +104,7 @@ it('computes completion, duration and offline figures', function () {
     ($data['attempt'])($ana, 90, [], ['duration_seconds' => 100, 'is_offline' => true]);
     ($data['attempt'])($ana, 60, [], ['attempt_number' => 2, 'duration_seconds' => 201]);
     ($data['attempt'])($ben, 50, [], ['duration_seconds' => null]);
-    ($data['attempt'])($outsider, 100, [], ['duration_seconds' => 300]);
+    ($data['attempt'])($outsider, 100, [], ['duration_seconds' => 300, 'classroom_id' => null]);
     ($data['attempt'])(quizResultsLearner($data['classroom'], 'Dina'), 99, [], ['submitted_at' => null]);
 
     $summary = app(QuizResults::class)->summarize($data['quiz'], $data['quiz']->classrooms()->get());

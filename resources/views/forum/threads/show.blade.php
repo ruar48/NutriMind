@@ -8,7 +8,7 @@
     $canModerate = $viewer->can('moderate', \App\Models\ForumThread::class);
     $canUpdate = $viewer->can('update', $thread);
     $canDelete = $viewer->can('delete', $thread);
-    $canReport = ! $threadReported && $isPublished && $viewer->can('report', $thread);
+    $canReport = ! $canModerate && ! $threadReported && $isPublished && $viewer->can('report', $thread);
     $categoryUrl = $thread->category->is_active || $isAdmin ? route('forum.categories.show', $thread->category) : null;
     $lastActivity = $thread->last_activity_at ?? $thread->created_at;
     $approve = \App\Services\Forum\ApprovalDecision::Approve;
@@ -33,7 +33,7 @@
         ]"
     >
         <x-slot:meta>
-            <x-subject-chip :name="$thread->category->name" :color="$thread->category->color" :icon="$thread->category->icon" :href="$categoryUrl" />
+            <x-subject-chip :name="$thread->category->name" :color="$thread->category->color" :icon="$thread->category->icon" />
             <x-forum.thread-badges :thread="$thread" size="md" />
             @if ($threadOpenReports > 0)
                 <x-badge color="berry" icon="flag" data-forum-open-reports="{{ $threadOpenReports }}">{{ trans_choice(':count open report|:count open reports', $threadOpenReports) }}</x-badge>
@@ -241,7 +241,11 @@
             <x-section title="About this thread" icon="info" color="slate">
                 <x-definition-list>
                     <x-detail-row label="Category">
-                        <x-subject-chip :name="$thread->category->name" :color="$thread->category->color" :icon="$thread->category->icon" size="sm" :href="$categoryUrl" />
+                        @if ($categoryUrl)
+                            <a href="{{ $categoryUrl }}" class="font-semibold text-leaf-700 hover:underline dark:text-leaf-300">{{ $thread->category->name }}</a>
+                        @else
+                            {{ $thread->category->name }}
+                        @endif
                     </x-detail-row>
                     <x-detail-row label="Started by" :value="$thread->author->name" />
                     <x-detail-row label="Posted">

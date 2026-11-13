@@ -66,12 +66,12 @@ function studentPagesAttempt(Quiz $quiz, User $student, ?Classroom $classroom, f
         ->for($quiz)
         ->for($student, 'student')
         ->state(['classroom_id' => $classroom?->getKey()])
-        ->create([
+        ->create(array_merge([
             'score' => (int) round($percentage),
             'max_score' => 100,
             'percentage' => $percentage,
             'passed' => $percentage >= $quiz->passing_score,
-        ] + $attributes);
+        ], $attributes));
 }
 
 /**

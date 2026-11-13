@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Permission;
 use App\Enums\UserRole;
 use App\Models\ForumThread;
 use App\Models\User;
@@ -223,7 +224,7 @@ describe('update', function () {
         ]));
 
         expect(app(Settings::class)->get('role_permissions'))->toBeNull()
-            ->and(User::factory()->teacher()->create()->hasPermission(\App\Enums\Permission::CreateQuizzes))->toBeTrue();
+            ->and(User::factory()->teacher()->create()->hasPermission(Permission::CreateQuizzes))->toBeTrue();
     });
 
     it('forbids every other role before validating', function (UserRole $role) {

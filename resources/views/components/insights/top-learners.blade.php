@@ -15,7 +15,6 @@
         'name' => $entry['student']->name,
         'points' => $entry['points'],
         'level' => $entry['level'],
-        'meta' => 'Level '.$entry['level'],
         'url' => $url instanceof \Closure ? $url($entry['student']) : null,
     ], $entries);
 @endphp

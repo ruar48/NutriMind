@@ -96,6 +96,21 @@
                             <x-dropdown.item :href="route('admin.modules.show', $module)" icon="eye">View module</x-dropdown.item>
                             <x-dropdown.item :href="route('admin.modules.edit', $module)" icon="pencil">Edit</x-dropdown.item>
                             <x-dropdown.item :href="route('admin.modules.activities.create', $module)" icon="plus">Add activity</x-dropdown.item>
+                            <x-confirm-dialog
+                                :action="route('admin.modules.publication.update', $module)"
+                                method="PUT"
+                                :danger="$module->is_published"
+                                :title="($module->is_published ? 'Unpublish “' : 'Publish “').$module->title.'”?'"
+                                :message="$module->is_published
+                                    ? 'Learners stop seeing the module and its activities in the game. Their progress is kept.'
+                                    : 'Learners can play its published activities the next time their game syncs.'"
+                                :confirm="$module->is_published ? 'Unpublish' : 'Publish'"
+                                :button="$module->is_published ? 'Unpublish' : 'Publish'"
+                                button-variant="menu"
+                                :button-icon="$module->is_published ? 'eye-off' : 'eye'"
+                            >
+                                <x-slot:fields><input type="hidden" name="is_published" value="{{ $module->is_published ? '0' : '1' }}"></x-slot:fields>
+                            </x-confirm-dialog>
                             <x-dropdown.divider />
                             @if ($module->has_progress)
                                 <x-dropdown.item icon="trash-2" disabled>Delete (learners played it)</x-dropdown.item>

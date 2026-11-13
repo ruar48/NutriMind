@@ -42,9 +42,10 @@ class RowValidator
     /**
      * Validate and normalize one data row.
      *
+     * The classroom being imported into (if any) supplies the grade of rows without one, and every row's grade must
+     * match it.
+     *
      * @param  array<string, string>  $values  The trimmed cells by column.
-     * @param  Classroom|null  $classroom  The classroom being imported into; it supplies the grade of rows without one
-     *                                     and every row's grade must match it.
      * @param  bool  $usesNameParts  Whether the file names learners with first_name and last_name (else with name).
      */
     public function validate(int $number, array $values, ?Classroom $classroom, bool $usesNameParts): ValidatedRow

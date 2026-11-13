@@ -4,6 +4,7 @@ use App\Enums\Permission;
 use App\Enums\UserRole;
 use App\Models\User;
 use App\Services\RolePermissions;
+use App\Services\Settings;
 use App\View\Composers\NavigationComposer;
 use Illuminate\Support\Facades\Gate;
 
@@ -152,7 +153,7 @@ describe('update', function () {
             ->assertRedirectToRoute('admin.roles.index')
             ->assertSessionHas('status', 'Role permissions were reset to the defaults.');
 
-        expect(app(\App\Services\Settings::class)->get(RolePermissions::SETTING_KEY))->toBeNull()
+        expect(app(Settings::class)->get(RolePermissions::SETTING_KEY))->toBeNull()
             ->and(User::factory()->teacher()->create()->hasPermission(Permission::CreateQuizzes))->toBeTrue()
             ->and(User::factory()->student()->create()->hasPermission(Permission::UseOfflineMode))->toBeTrue();
     });
@@ -162,7 +163,7 @@ describe('update', function () {
             ->put(route('admin.roles.update'), $payload)
             ->assertSessionHasErrors([$field => $message]);
 
-        expect(app(\App\Services\Settings::class)->get(RolePermissions::SETTING_KEY))->toBeNull();
+        expect(app(Settings::class)->get(RolePermissions::SETTING_KEY))->toBeNull();
     })->with([
         'administrator column' => [['permissions' => ['admin' => ['create_quizzes']]], 'permissions', 'Permissions can only be changed for teachers, parents and learners.'],
         'unknown role' => [['permissions' => ['principal' => ['create_quizzes']]], 'permissions', 'Permissions can only be changed for teachers, parents and learners.'],
@@ -178,7 +179,7 @@ describe('update', function () {
             ->assertForbidden()
             ->assertSessionHasNoErrors();
 
-        expect(app(\App\Services\Settings::class)->get(RolePermissions::SETTING_KEY))->toBeNull();
+        expect(app(Settings::class)->get(RolePermissions::SETTING_KEY))->toBeNull();
     })->with(['teacher', 'parent']);
 
     it('sends guests to the sign-in page', function () {

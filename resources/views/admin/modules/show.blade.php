@@ -37,6 +37,22 @@
                     button-size="md"
                 />
             @endif
+            <x-confirm-dialog
+                :action="route('admin.modules.publication.update', $module)"
+                method="PUT"
+                :danger="$module->is_published"
+                :title="($module->is_published ? 'Unpublish “' : 'Publish “').$module->title.'”?'"
+                :message="$module->is_published
+                    ? 'Learners stop seeing the module and its activities in the game. Their progress is kept.'
+                    : 'Learners can play its published activities the next time their game syncs.'"
+                :confirm="$module->is_published ? 'Unpublish' : 'Publish'"
+                :button="$module->is_published ? 'Unpublish' : 'Publish'"
+                button-variant="secondary"
+                button-size="md"
+                :button-icon="$module->is_published ? 'eye-off' : 'eye'"
+            >
+                <x-slot:fields><input type="hidden" name="is_published" value="{{ $module->is_published ? '0' : '1' }}"></x-slot:fields>
+            </x-confirm-dialog>
             <x-button variant="secondary" icon="pencil" :href="route('admin.modules.edit', $module)">Edit</x-button>
             <x-button icon="plus" :href="route('admin.modules.activities.create', $module)">Add activity</x-button>
         </x-slot:actions>

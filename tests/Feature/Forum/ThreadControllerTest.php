@@ -430,6 +430,51 @@ describe('show', function () {
             ->assertDontSee('data-forum-report-form="thread"', false);
     });
 
+    it('does not offer administrators the report dialog', function () {
+        $thread = ForumThread::factory()->create();
+        $reply = ForumReply::factory()->for($thread, 'thread')->create();
+
+        $this->actingAs(User::factory()->admin()->create())
+            ->get(route('forum.threads.show', $thread))
+            ->assertOk()
+            ->assertDontSee('data-forum-report-form="thread"', false)
+            ->assertDontSee('data-forum-report-form="reply-'.$reply->id.'"', false);
+    });
+
+    it('offers the reply actions each reader may use', function () {
+        $parent = User::factory()->parent()->create();
+        $thread = ForumThread::factory()->create();
+        $ownReply = ForumReply::factory()->for($thread, 'thread')->for($parent, 'author')->create();
+        $otherReply = ForumReply::factory()->for($thread, 'thread')->create();
+        $reportedReply = ForumReply::factory()->for($thread, 'thread')->create();
+        ForumReport::factory()->for($reportedReply, 'reply')->for($parent, 'reporter')->create();
+
+        $this->actingAs($parent)
+            ->get(route('forum.threads.show', $thread))
+            ->assertOk()
+            ->assertSee(route('forum.replies.edit', $ownReply), false)
+            ->assertDontSee(route('forum.replies.edit', $otherReply), false)
+            ->assertDontSee('data-forum-report-form="reply-'.$ownReply->id.'"', false)
+            ->assertSee('data-forum-report-form="reply-'.$otherReply->id.'"', false)
+            ->assertDontSee('data-forum-report-form="reply-'.$reportedReply->id.'"', false)
+            ->assertSeeText('You reported this reply')
+            ->assertDontSee(route('forum.replies.moderation.update', $otherReply), false);
+    });
+
+    it('offers administrators the reply moderator tools', function () {
+        $thread = ForumThread::factory()->create();
+        $reply = ForumReply::factory()->for($thread, 'thread')->create();
+        $hiddenReply = ForumReply::factory()->for($thread, 'thread')->hidden()->create();
+
+        $this->actingAs(User::factory()->admin()->create())
+            ->get(route('forum.threads.show', $thread))
+            ->assertOk()
+            ->assertSee(route('forum.replies.moderation.update', $reply), false)
+            ->assertSee(route('forum.replies.moderation.update', $hiddenReply), false)
+            ->assertSee('name="action" value="hide"', false)
+            ->assertSee('name="action" value="unhide"', false);
+    });
+
     it('shows the moderator tools only to administrators', function () {
         $thread = ForumThread::factory()->create();
 

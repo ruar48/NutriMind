@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Middleware;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 /**
@@ -41,9 +42,9 @@ class SubjectAssignmentController extends Controller
      */
     public function index(Request $request): View
     {
-        $search = $request->string('search')->squish()->toString();
-        $coverage = array_key_exists($request->string('coverage')->toString(), self::COVERAGE_FILTERS) ? $request->string('coverage')->toString() : null;
-        $subjectFilter = $request->integer('subject') ?: null;
+        $search = $this->textFilter($request, 'search');
+        $coverage = array_key_exists($this->textFilter($request, 'coverage'), self::COVERAGE_FILTERS) ? $this->textFilter($request, 'coverage') : null;
+        $subjectFilter = ctype_digit($this->textFilter($request, 'subject')) ? (int) $this->textFilter($request, 'subject') : null;
 
         $teachers = User::query()
             ->ofRole(UserRole::Teacher)
@@ -110,6 +111,16 @@ class SubjectAssignmentController extends Controller
         return redirect()
             ->to(url()->previous(route('admin.subject-assignments.index')).'#teacher-'.$teacher->getKey())
             ->with('status', $this->summary($teacher, $attached, $detached));
+    }
+
+    /**
+     * Read a query-string filter as squished text, or an empty string when it is missing or not text.
+     */
+    private function textFilter(Request $request, string $key): string
+    {
+        $value = $request->query($key);
+
+        return is_string($value) ? Str::squish($value) : '';
     }
 
     /**

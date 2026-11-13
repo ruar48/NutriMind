@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\ContentAlignmentController;
 use App\Http\Controllers\Admin\LearningActivityController;
 use App\Http\Controllers\Admin\LearningModuleController;
+use App\Http\Controllers\Admin\LearningModulePublicationController;
 use App\Http\Controllers\Admin\MissionController;
 use App\Http\Controllers\Admin\RewardController;
 use Illuminate\Support\Facades\Route;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::resource('modules', LearningModuleController::class);
+Route::put('/modules/{module}/publication', [LearningModulePublicationController::class, 'update'])->name('modules.publication.update');
 Route::resource('modules.activities', LearningActivityController::class)
     ->shallow()
     ->except(['index', 'show']);

@@ -28,8 +28,7 @@
 
                 <div class="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-ink-500 dark:text-ink-400">
                     @if ($showCategory)
-                        <x-subject-chip :name="$thread->category->name" :color="$thread->category->color" :icon="$thread->category->icon" size="sm"
-                            :href="$thread->category->is_active ? route('forum.categories.show', $thread->category) : null" class="relative z-10" />
+                        <x-subject-chip :name="$thread->category->name" :color="$thread->category->color" :icon="$thread->category->icon" size="sm" />
                     @endif
                     <span class="inline-flex min-w-0 items-center gap-1.5">
                         <span class="truncate font-medium text-ink-700 dark:text-ink-200">{{ $thread->author->name }}</span>

@@ -32,7 +32,7 @@
             compact
             icon="filter"
             :title="$status?->emptyTitle() ?? 'No rows on this page'"
-            :description="$status?->description()"
+            description="Pick another tab to see the other rows of the file."
             data-import-rows-empty
         >
             <x-slot:actions>

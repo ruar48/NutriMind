@@ -15,6 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Middleware;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 /**
@@ -42,8 +43,8 @@ class SchoolYearController extends Controller
      */
     public function index(Request $request): View
     {
-        $search = $request->string('search')->squish()->toString();
-        $status = array_key_exists($request->string('status')->toString(), self::STATUS_FILTERS) ? $request->string('status')->toString() : null;
+        $search = $this->textFilter($request, 'search');
+        $status = array_key_exists($this->textFilter($request, 'status'), self::STATUS_FILTERS) ? $this->textFilter($request, 'status') : null;
 
         $schoolYears = SchoolYear::query()
             ->when($search !== '', fn (Builder $query) => $query->whereLike('name', '%'.$search.'%'))
@@ -223,6 +224,16 @@ class SchoolYearController extends Controller
             'upcoming' => $query->where('starts_on', '>=', today()->addDay()->toDateString()),
             'ended' => $query->where('ends_on', '<', today()->toDateString()),
         };
+    }
+
+    /**
+     * Read a query-string filter as squished text, or an empty string when it is missing or not text.
+     */
+    private function textFilter(Request $request, string $key): string
+    {
+        $value = $request->query($key);
+
+        return is_string($value) ? Str::squish($value) : '';
     }
 
     /**

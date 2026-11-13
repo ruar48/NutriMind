@@ -20,7 +20,7 @@
             @else
                 <x-badge color="slate" icon="calendar-range" size="lg">No active quarter</x-badge>
             @endif
-            <x-badge color="leaf" icon="clipboard-check" size="lg">{{ trans_choice(':count quiz attempt|:count quiz attempts', $weekOverview['attempts']) }} this week</x-badge>
+            <x-badge color="leaf" icon="clipboard-check" size="lg">{{ trans_choice(':count quiz attempt|:count quiz attempts', $weekOverview['attempts']) }} in the last 7 days</x-badge>
             @if ($openModeration > 0)
                 <x-badge color="berry" icon="shield" size="lg">{{ trans_choice(':count item to moderate|:count items to moderate', $openModeration) }}</x-badge>
             @endif

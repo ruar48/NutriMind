@@ -44,13 +44,13 @@ function quizResultsPageSetup(): array
     $learners['Dina Lim'] = User::factory()->student(GradeLevel::Five)->enrolledIn($ilangIlang)->create(['name' => 'Dina Lim']);
 
     $attempt = function (string $name, Classroom $classroom, float $percentage, string $answer, array $attributes = []) use ($quiz, $question, $learners): QuizAttempt {
-        $attempt = QuizAttempt::factory()->for($quiz)->for($learners[$name], 'student')->for($classroom)->create([
+        $attempt = QuizAttempt::factory()->for($quiz)->for($learners[$name], 'student')->for($classroom)->create(array_merge([
             'score' => (int) round($percentage),
             'max_score' => 100,
             'percentage' => $percentage,
             'passed' => $percentage >= 75,
             'duration_seconds' => 300,
-        ] + $attributes);
+        ], $attributes));
         QuizAttemptAnswer::factory()->for($attempt, 'attempt')->for($question, 'question')->create([
             'answer' => $answer,
             'is_correct' => $answer === '1',

@@ -62,7 +62,7 @@
                             @endif
                         </div>
                     </div>
-                    @if ($entry['lastActiveAt'])
+                    @if ($entry['lastActiveAt'] && ! $entry['inactive'])
                         <time class="hidden shrink-0 text-xs text-ink-500 sm:block dark:text-ink-400" datetime="{{ $entry['lastActiveAt']->toIso8601String() }}" title="{{ $entry['lastActiveAt']->format('M j, Y g:i A') }}">
                             Played {{ $entry['lastActiveAt']->diffForHumans() }}
                         </time>

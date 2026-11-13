@@ -8,10 +8,11 @@ namespace App\Services\StudentImport;
 final readonly class ParsedCsv
 {
     /**
+     * Each row holds its spreadsheet row number (the heading row is 1) and the trimmed cell of every column: the
+     * first one when a column name repeats, '' for a missing cell. Blank rows are left out.
+     *
      * @param  list<string>  $headers  Normalized column names in file order (blank headings left out, duplicates kept).
-     * @param  list<array{number: int, values: array<string, string>}>  $rows  Non-blank data rows: the spreadsheet row
-     *                                                                         number (the heading row is 1) and the trimmed cell of each column (the first one
-     *                                                                         when a column name repeats; '' for a missing cell).
+     * @param  list<array{number: int, values: array<string, string>}>  $rows
      * @param  string  $delimiter  The detected delimiter (',' or ';').
      */
     public function __construct(

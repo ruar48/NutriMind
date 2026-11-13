@@ -19,14 +19,16 @@ final readonly class ImportResult
     public const CREDENTIALS_HEADINGS = ['Name', 'Account', 'Username or email', 'Password', 'Signs in to'];
 
     /**
+     * The credentials hold the sign-in details of every new account in row order; a parent's "username" is the
+     * email address they sign in with.
+     *
      * @param  int  $created  New learner accounts.
      * @param  int  $enrolled  Existing learners enrolled in the classroom.
      * @param  int  $skipped  Rows skipped.
      * @param  int  $failed  Rows not imported because of errors.
      * @param  int  $parentsCreated  New parent accounts.
      * @param  int  $guardiansLinked  Parent–learner links added.
-     * @param  list<array{name: string, username: string, password: string, role: UserRole}>  $credentials  Sign-in
-     *                                                                                                      details of every new account, in row order (a parent's "username" is the email address they sign in with).
+     * @param  list<array{name: string, username: string, password: string, role: UserRole}>  $credentials
      */
     public function __construct(
         public int $created,

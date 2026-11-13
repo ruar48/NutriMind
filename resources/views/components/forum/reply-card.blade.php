@@ -10,8 +10,8 @@
     $isHidden = $reply->status !== \App\Enums\ForumContentStatus::Published;
     $canEdit = ! $isHidden && ($viewer?->can('update', $reply) ?? false);
     $canDelete = $viewer?->can('delete', $reply) ?? false;
-    $canReport = ! $isHidden && ! $reported && ($viewer?->can('report', $reply) ?? false);
     $canModerate = $viewer?->can('moderate', \App\Models\ForumReply::class) ?? false;
+    $canReport = ! $canModerate && ! $isHidden && ! $reported && ($viewer?->can('report', $reply) ?? false);
 @endphp
 
 <article id="reply-{{ $reply->id }}" {{ $attributes->class('scroll-mt-24') }} data-forum-reply="{{ $reply->id }}" data-forum-reply-status="{{ $reply->status->value }}">

@@ -50,8 +50,8 @@ class SubjectController extends Controller
      */
     public function index(Request $request): View
     {
-        $search = $request->string('search')->squish()->toString();
-        $status = array_key_exists($request->string('status')->toString(), self::STATUS_FILTERS) ? $request->string('status')->toString() : null;
+        $search = $this->textFilter($request, 'search');
+        $status = array_key_exists($this->textFilter($request, 'status'), self::STATUS_FILTERS) ? $this->textFilter($request, 'status') : null;
 
         $subjects = Subject::query()
             ->when($search !== '', fn (Builder $query) => $query->where(fn (Builder $query) => $query
@@ -146,5 +146,15 @@ class SubjectController extends Controller
         $subject->delete();
 
         return redirect()->route('admin.subjects.index')->with('status', "{$subject->name} was deleted.");
+    }
+
+    /**
+     * Read a query-string filter as squished text, or an empty string when it is missing or not text.
+     */
+    private function textFilter(Request $request, string $key): string
+    {
+        $value = $request->query($key);
+
+        return is_string($value) ? Str::squish($value) : '';
     }
 }
