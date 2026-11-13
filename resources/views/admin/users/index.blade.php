@@ -119,7 +119,9 @@
                 </x-table.row>
             @endforeach
 
-            <x-slot:footer>{{ $users->links() }}</x-slot:footer>
+            @if ($users->hasPages())
+                <x-slot:footer>{{ $users->links() }}</x-slot:footer>
+            @endif
         </x-table>
     @endif
 </x-layouts.app>

@@ -168,10 +168,11 @@ class QuestionBankController extends Controller
     {
         /** @var User $teacher */
         $teacher = $request->user();
+        $canShare = $teacher->can('share', $item);
 
         $item->fill([
             ...$request->itemAttributes(),
-            'is_shared' => $request->boolean('is_shared') && $teacher->can('share', $item),
+            'is_shared' => $request->boolean('is_shared') && $canShare,
             'reviewed_at' => $request->boolean('reviewed') ? ($item->reviewed_at ?? now()) : null,
         ]);
 
