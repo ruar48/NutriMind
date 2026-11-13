@@ -1,0 +1,595 @@
+@import 'tailwindcss' source(none);
+
+/*
+ * Explicit sources: Blade views, JS behaviors and PHP classes that emit class names.
+ * Automatic detection is disabled so vendor/ and compiled views are never scanned.
+ */
+@source '../views';
+@source '../js';
+@source '../../app';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ------------------------------------------------------------------------------------------------
+ | Design tokens — "Fresh Arcade"
+ | Produce ramps on warm paper, green-tinted ink neutrals, a deep-forest sidebar.
+ * ------------------------------------------------------------------------------------------------ */
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-display: 'Bricolage Grotesque', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+
+    --color-paper: #f7f6f1;
+    --color-forest: #0e231a;
+    --color-forest-deep: #08160f;
+
+    --color-leaf-50: #effaf3;
+    --color-leaf-100: #d8f3e2;
+    --color-leaf-200: #b3e6c8;
+    --color-leaf-300: #80d3a6;
+    --color-leaf-400: #4bb97f;
+    --color-leaf-500: #27a063;
+    --color-leaf-600: #1a8250;
+    --color-leaf-700: #176843;
+    --color-leaf-800: #165337;
+    --color-leaf-900: #13442f;
+    --color-leaf-950: #08261a;
+
+    --color-carrot-50: #fff6ed;
+    --color-carrot-100: #ffead4;
+    --color-carrot-200: #ffd1a8;
+    --color-carrot-300: #ffb070;
+    --color-carrot-400: #fe8a3a;
+    --color-carrot-500: #f96a14;
+    --color-carrot-600: #ea500a;
+    --color-carrot-700: #c23b0b;
+    --color-carrot-800: #9a3011;
+    --color-carrot-900: #7c2a12;
+    --color-carrot-950: #431207;
+
+    --color-sun-50: #fffbea;
+    --color-sun-100: #fff3c4;
+    --color-sun-200: #ffe685;
+    --color-sun-300: #ffd446;
+    --color-sun-400: #ffc21b;
+    --color-sun-500: #f9a602;
+    --color-sun-600: #dd7e00;
+    --color-sun-700: #b75804;
+    --color-sun-800: #94440a;
+    --color-sun-900: #7a380b;
+    --color-sun-950: #461c00;
+
+    --color-berry-50: #fff1f3;
+    --color-berry-100: #ffe0e5;
+    --color-berry-200: #ffc6d0;
+    --color-berry-300: #ff9cad;
+    --color-berry-400: #ff6383;
+    --color-berry-500: #f8325f;
+    --color-berry-600: #e5114b;
+    --color-berry-700: #c1083e;
+    --color-berry-800: #a10a3b;
+    --color-berry-900: #890d39;
+    --color-berry-950: #4d021a;
+
+    --color-grape-50: #f5f3ff;
+    --color-grape-100: #ede8ff;
+    --color-grape-200: #ddd3ff;
+    --color-grape-300: #c3b1fd;
+    --color-grape-400: #a387f8;
+    --color-grape-500: #7c5cf0;
+    --color-grape-600: #6a42e3;
+    --color-grape-700: #5a33c9;
+    --color-grape-800: #4a2ba3;
+    --color-grape-900: #3e2784;
+    --color-grape-950: #251658;
+
+    --color-ink-50: #f6f7f4;
+    --color-ink-100: #eceee9;
+    --color-ink-200: #d9ddd5;
+    --color-ink-300: #b9c0b6;
+    --color-ink-400: #8f998d;
+    --color-ink-500: #6c776a;
+    --color-ink-600: #545e53;
+    --color-ink-700: #424a42;
+    --color-ink-800: #2b322c;
+    --color-ink-900: #1a211c;
+    --color-ink-950: #0d1410;
+
+    --shadow-card: 0 1px 2px 0 rgb(13 20 16 / 0.04), 0 1px 3px 0 rgb(13 20 16 / 0.05);
+    --shadow-lift: 0 10px 28px -10px rgb(13 20 16 / 0.18), 0 2px 6px -2px rgb(13 20 16 / 0.08);
+    --shadow-glow: 0 0 0 1px rgb(75 185 127 / 0.28), 0 6px 22px -6px rgb(39 160 99 / 0.55);
+
+    --ease-snappy: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+    --animate-fade-up: fade-up 280ms var(--ease-snappy) both;
+    --animate-pop: pop 360ms var(--ease-snappy) both;
+    --animate-sheen: sheen 2.8s ease-in-out infinite;
+    --animate-float: float 7s ease-in-out infinite;
+    --animate-flicker: flicker 1.8s ease-in-out infinite;
+    --animate-toast-in: toast-in 260ms var(--ease-snappy) both;
+}
+
+/* ------------------------------------------------------------------------------------------------
+ | Chart roles (dataviz method). Categorical slots validated with validate_palette.js against the
+ | real card surfaces (#ffffff light, ink-900 #1a211c dark); see COMPONENTS.md for the report.
+ * ------------------------------------------------------------------------------------------------ */
+:root {
+    --chart-surface: #ffffff;
+    --chart-1: #27a063;
+    --chart-2: #7c5cf0;
+    --chart-3: #ea500a;
+    --chart-4: #0284c7;
+    --chart-5: #dd7e00;
+    --chart-6: #db2777;
+    --chart-7: #4f46e5;
+    --chart-8: #e5114b;
+    --chart-other: #b9c0b6;
+    --chart-grid: #e6e9e3;
+    --chart-axis: #cdd2c9;
+    --chart-text: #545e53;
+    --chart-muted: #6c776a;
+    --chart-target: #8f998d;
+
+    --viz-leaf: #1a8250;
+    --viz-teal: #14b8a6;
+    --viz-sky: #0369a1;
+    --viz-sun: #dd7e00;
+    --viz-berry: #c1083e;
+    --viz-slate: #94a3b8;
+    --viz-carrot: #ea500a;
+    --viz-grape: #7c5cf0;
+    --viz-pink: #db2777;
+    --viz-indigo: #4f46e5;
+    --viz-lime: #65a30d;
+
+    --texture-dot: rgb(26 33 28 / 0.075);
+}
+
+.dark {
+    --chart-surface: #1a211c;
+    --chart-1: #27a063;
+    --chart-2: #8f74f5;
+    --chart-3: #ea500a;
+    --chart-4: #0b8fd0;
+    --chart-5: #c98500;
+    --chart-6: #ec4899;
+    --chart-7: #6366f1;
+    --chart-8: #f8325f;
+    --chart-other: #545e53;
+    --chart-grid: #29312b;
+    --chart-axis: #3a433c;
+    --chart-text: #b9c0b6;
+    --chart-muted: #8f998d;
+    --chart-target: #8f998d;
+
+    --viz-leaf: #027e38;
+    --viz-teal: #10a796;
+    --viz-sky: #0570a5;
+    --viz-sun: #c67f09;
+    --viz-berry: #d10749;
+    --viz-slate: #64748b;
+    --viz-carrot: #ea500a;
+    --viz-grape: #8f74f5;
+    --viz-pink: #ec4899;
+    --viz-indigo: #6366f1;
+    --viz-lime: #65a30d;
+
+    --texture-dot: rgb(255 255 255 / 0.05);
+}
+
+/* ------------------------------------------------------------------------------------------------
+ | Motion
+ * ------------------------------------------------------------------------------------------------ */
+@keyframes fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+}
+
+@keyframes pop {
+    0% {
+        opacity: 0;
+        transform: scale(0.86);
+    }
+    60% {
+        opacity: 1;
+        transform: scale(1.04);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes sheen {
+    0% {
+        transform: translateX(-120%);
+    }
+    55%,
+    100% {
+        transform: translateX(260%);
+    }
+}
+
+@keyframes float {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+@keyframes flicker {
+    0%,
+    100% {
+        transform: scale(1) rotate(-3deg);
+    }
+    50% {
+        transform: scale(1.07) rotate(3deg);
+    }
+}
+
+@keyframes toast-in {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.98);
+    }
+}
+
+@keyframes grow-width {
+    from {
+        width: 0;
+    }
+}
+
+@keyframes grow-height {
+    from {
+        height: 0;
+    }
+}
+
+@keyframes ring-fill {
+    from {
+        stroke-dashoffset: var(--ring-circumference);
+    }
+}
+
+@keyframes reveal-x {
+    from {
+        clip-path: inset(0 100% 0 0);
+    }
+    to {
+        clip-path: inset(0 0 0 0);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ------------------------------------------------------------------------------------------------
+ | Base
+ * ------------------------------------------------------------------------------------------------ */
+@layer base {
+    html {
+        color-scheme: light;
+        -webkit-tap-highlight-color: transparent;
+        text-size-adjust: 100%;
+    }
+
+    html.dark {
+        color-scheme: dark;
+    }
+
+    body {
+        background-color: var(--color-paper);
+        color: var(--color-ink-900);
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    html.dark body {
+        background-color: var(--color-ink-950);
+        color: var(--color-ink-50);
+    }
+
+    ::selection {
+        background-color: var(--color-leaf-200);
+        color: var(--color-ink-950);
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-leaf-500);
+        outline-offset: 2px;
+    }
+
+    h1,
+    h2,
+    h3 {
+        text-wrap: balance;
+    }
+
+    p {
+        text-wrap: pretty;
+    }
+
+    button:not(:disabled),
+    [role='button']:not([aria-disabled='true']),
+    summary {
+        cursor: pointer;
+    }
+
+    summary {
+        list-style: none;
+    }
+
+    summary::-webkit-details-marker {
+        display: none;
+    }
+
+    dialog::backdrop {
+        background-color: rgb(13 20 16 / 0.55);
+        backdrop-filter: blur(3px);
+    }
+
+    html:not(.js) [data-js-only],
+    html.js [data-no-js] {
+        display: none !important;
+    }
+}
+
+/* ------------------------------------------------------------------------------------------------
+ | Utilities
+ * ------------------------------------------------------------------------------------------------ */
+@utility bg-dot-grid {
+    background-image: radial-gradient(var(--texture-dot) 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+@utility xp-ticks {
+    background-image: repeating-linear-gradient(
+        90deg,
+        transparent 0,
+        transparent calc(10% - 1px),
+        rgb(255 255 255 / 0.45) calc(10% - 1px),
+        rgb(255 255 255 / 0.45) 10%
+    );
+}
+
+@utility scrollbar-none {
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+@utility scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 0.16) transparent;
+}
+
+/* ------------------------------------------------------------------------------------------------
+ | Behaviors driven by data attributes
+ * ------------------------------------------------------------------------------------------------ */
+
+/* Page content fade-up with stagger: <div data-animate style="--stagger: 2"> */
+[data-animate] {
+    animation: fade-up 280ms var(--ease-snappy) both;
+    animation-delay: calc(var(--stagger, 0) * 55ms);
+}
+
+/*
+ * Off-canvas sidebar below lg. Visibility flips instantly when opening (so focus can move in at once) and
+ * waits for the slide-out when closing. :target is the no-JS fallback of the #app-sidebar toggle link.
+ */
+@media (width < 64rem) {
+    [data-sidebar] {
+        visibility: hidden;
+        translate: -100% 0;
+        transition:
+            translate 300ms var(--ease-snappy),
+            visibility 0s linear 300ms;
+    }
+
+    [data-sidebar][data-open],
+    [data-sidebar]:target {
+        visibility: visible;
+        translate: 0 0;
+        transition:
+            translate 300ms var(--ease-snappy),
+            visibility 0s linear 0s;
+    }
+}
+
+/* Theme switch: the trigger shows the icon of the stored preference. */
+[data-theme-icon] {
+    display: none;
+}
+
+:root[data-theme-preference='light'] [data-theme-icon='light'],
+:root[data-theme-preference='dark'] [data-theme-icon='dark'],
+:root[data-theme-preference='system'] [data-theme-icon='system'],
+:root:not([data-theme-preference]) [data-theme-icon='system'] {
+    display: inline-block;
+}
+
+/* Announcement already dismissed for this exact text (set by the inline head script). */
+:root[data-announcement-dismissed] [data-announcement] {
+    display: none;
+}
+
+/* Chart series colors: marks read var(--viz); the slot or palette key decides it. */
+[data-viz='1'] {
+    --viz: var(--chart-1);
+}
+[data-viz='2'] {
+    --viz: var(--chart-2);
+}
+[data-viz='3'] {
+    --viz: var(--chart-3);
+}
+[data-viz='4'] {
+    --viz: var(--chart-4);
+}
+[data-viz='5'] {
+    --viz: var(--chart-5);
+}
+[data-viz='6'] {
+    --viz: var(--chart-6);
+}
+[data-viz='7'] {
+    --viz: var(--chart-7);
+}
+[data-viz='8'] {
+    --viz: var(--chart-8);
+}
+[data-viz='other'] {
+    --viz: var(--chart-other);
+}
+[data-viz='leaf'] {
+    --viz: var(--viz-leaf);
+}
+[data-viz='teal'] {
+    --viz: var(--viz-teal);
+}
+[data-viz='sky'] {
+    --viz: var(--viz-sky);
+}
+[data-viz='sun'] {
+    --viz: var(--viz-sun);
+}
+[data-viz='berry'] {
+    --viz: var(--viz-berry);
+}
+[data-viz='slate'] {
+    --viz: var(--viz-slate);
+}
+[data-viz='carrot'] {
+    --viz: var(--viz-carrot);
+}
+[data-viz='grape'] {
+    --viz: var(--viz-grape);
+}
+[data-viz='pink'] {
+    --viz: var(--viz-pink);
+}
+[data-viz='indigo'] {
+    --viz: var(--viz-indigo);
+}
+[data-viz='lime'] {
+    --viz: var(--viz-lime);
+}
+
+/* Label ink inside a filled mark (APCA-chosen): white, except near-black on light teal and light slate. */
+[data-viz] {
+    --viz-ink: #ffffff;
+}
+
+:root:not(.dark) [data-viz='teal'],
+:root:not(.dark) [data-viz='slate'],
+:root:not(.dark) [data-viz='other'] {
+    --viz-ink: var(--color-ink-950);
+}
+
+[data-chart-mark] {
+    transition:
+        opacity 150ms ease,
+        filter 150ms ease;
+}
+
+[data-chart][data-hovering] [data-chart-mark]:not([data-active]) {
+    opacity: 0.55;
+}
+
+[data-chart-mark][data-active] {
+    filter: brightness(1.08) saturate(1.05);
+}
+
+[data-chart-tooltip] {
+    pointer-events: none;
+}
+
+[data-progress-fill] {
+    animation: grow-width 900ms var(--ease-snappy) both;
+}
+
+[data-bar-fill] {
+    animation: grow-height 700ms var(--ease-snappy) both;
+}
+
+[data-ring-fill] {
+    animation: ring-fill 1100ms var(--ease-snappy) both;
+}
+
+[data-line-reveal] {
+    animation: reveal-x 900ms var(--ease-snappy) both;
+}
+
+[data-spinner] {
+    animation: spin 0.8s linear infinite;
+}
+
+/* ------------------------------------------------------------------------------------------------
+ | Reduced motion: remove all non-essential motion.
+ * ------------------------------------------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        animation-delay: 0ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    [data-spinner] {
+        animation-duration: 1.6s !important;
+        animation-iteration-count: infinite !important;
+    }
+}
+
+/* ------------------------------------------------------------------------------------------------
+ | Print: light ink on white paper, no chrome, no motion.
+ * ------------------------------------------------------------------------------------------------ */
+@media print {
+    @page {
+        margin: 14mm;
+    }
+
+    html,
+    body {
+        background: #ffffff !important;
+        color: #0d1410 !important;
+    }
+
+    *,
+    *::before,
+    *::after {
+        box-shadow: none !important;
+        text-shadow: none !important;
+        animation: none !important;
+        transition: none !important;
+    }
+
+    [data-print-hidden],
+    [data-chart-tooltip] {
+        display: none !important;
+    }
+
+    [data-print-avoid-break],
+    table tr,
+    figure {
+        break-inside: avoid;
+    }
+
+    a {
+        text-decoration: none;
+    }
+}
