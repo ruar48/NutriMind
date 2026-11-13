@@ -81,10 +81,10 @@ class StoreClassroomRequest extends FormRequest
 
                 $subject = Subject::query()->findOrFail($this->integer('subject_id'));
                 $grade = GradeLevel::from($this->integer('grade_level'));
-                $section = (string) $this->string('section');
+                $takenSection = $this->takenSection($schoolYear->id, $subject->id, $grade, (string) $this->string('section'));
 
-                if ($this->sectionIsTaken($schoolYear->id, $subject->id, $grade, $section)) {
-                    $validator->errors()->add('section', $this->duplicateSectionMessage($subject, $grade, $section));
+                if ($takenSection !== null) {
+                    $validator->errors()->add('section', $this->duplicateSectionMessage($subject, $grade, $takenSection));
                 }
             },
         ];

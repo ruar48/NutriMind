@@ -97,7 +97,7 @@ class PeriodOptions
      *
      * @return array<string, string>
      */
-    public function messages(): array
+    public static function messages(): array
     {
         return [
             'period.string' => 'Choose a period from the list.',
@@ -159,6 +159,14 @@ class PeriodOptions
         }
 
         return AnalyticsPeriod::lastDays(30, self::DEFAULT);
+    }
+
+    /**
+     * Get the active term of the active school year (with its schoolYear relation set), or null when there is none.
+     */
+    public function currentTerm(): ?AcademicTerm
+    {
+        return $this->terms()[1];
     }
 
     /**

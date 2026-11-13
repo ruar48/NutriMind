@@ -163,6 +163,25 @@ class QuestionMedia
     }
 
     /**
+     * Get a question's content for a new record (quiz question or bank item): the question fields, the video link
+     * and copies of its image and video files.
+     *
+     * @return array{type: mixed, prompt: mixed, choices: mixed, correct_answer: mixed, explanation: mixed, video_url: mixed, image_path: ?string, video_path: ?string}
+     */
+    public function duplicateContent(QuizQuestion|QuestionBankItem $question): array
+    {
+        return [
+            'type' => $question->type,
+            'prompt' => $question->prompt,
+            'choices' => $question->choices,
+            'correct_answer' => $question->correct_answer,
+            'explanation' => $question->explanation,
+            'video_url' => $question->video_url,
+            ...$this->copyFiles($question),
+        ];
+    }
+
+    /**
      * Copy the image and video files of a question to new paths for another record.
      *
      * A missing source file is skipped (null). Copies are discarded when the surrounding transaction rolls back.

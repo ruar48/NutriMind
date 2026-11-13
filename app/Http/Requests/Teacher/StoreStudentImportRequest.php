@@ -2,8 +2,12 @@
 
 namespace App\Http\Requests\Teacher;
 
+use App\Services\StudentImport\ImportColumns;
+use App\Services\StudentImport\StudentImports;
+use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class StoreStudentImportRequest extends FormRequest
 {
@@ -12,7 +16,7 @@ class StoreStudentImportRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,7 +27,37 @@ class StoreStudentImportRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'file' => ImportColumns::fileRules(),
+        ];
+    }
+
+    /**
+     * Get the custom validation messages.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return ImportColumns::fileMessages();
+    }
+
+    /**
+     * Check the file's columns and row count once the basic rules pass (the classroom supplies the grade level).
+     *
+     * @return list<Closure(Validator): void>
+     */
+    public function after(StudentImports $imports): array
+    {
+        return [
+            function (Validator $validator) use ($imports): void {
+                if ($validator->errors()->has('file')) {
+                    return;
+                }
+
+                foreach ($imports->problemsWith($this->file('file'), gradeFromClassroom: true) as $problem) {
+                    $validator->errors()->add('file', $problem);
+                }
+            },
         ];
     }
 }

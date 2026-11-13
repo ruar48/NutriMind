@@ -79,6 +79,7 @@ class SchoolYearController extends Controller
         return view('admin.school-years.form', [
             'schoolYear' => new SchoolYear,
             'termsCount' => 0,
+            'activeSchoolYear' => SchoolYear::current(),
         ]);
     }
 
@@ -153,6 +154,7 @@ class SchoolYearController extends Controller
         return view('admin.school-years.form', [
             'schoolYear' => $schoolYear,
             'termsCount' => $schoolYear->terms()->count(),
+            'activeSchoolYear' => SchoolYear::current(),
         ]);
     }
 

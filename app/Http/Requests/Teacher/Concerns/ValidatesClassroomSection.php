@@ -14,11 +14,11 @@ use Illuminate\Support\Str;
 trait ValidatesClassroomSection
 {
     /**
-     * Determine whether another classroom of the school year already uses the subject, grade and section.
+     * Get the section name of another classroom of the school year with the same subject, grade and section, if any.
      *
      * Archived classrooms count: restoring one must never create a duplicate.
      */
-    protected function sectionIsTaken(int $schoolYearId, int $subjectId, GradeLevel $grade, string $section, ?int $ignoreClassroomId = null): bool
+    protected function takenSection(int $schoolYearId, int $subjectId, GradeLevel $grade, string $section, ?int $ignoreClassroomId = null): ?string
     {
         $wanted = $this->normalizedSection($section);
 
@@ -28,7 +28,7 @@ trait ValidatesClassroomSection
             ->where('grade_level', $grade)
             ->when($ignoreClassroomId !== null, fn (Builder $query) => $query->whereKeyNot($ignoreClassroomId))
             ->pluck('section')
-            ->contains(fn (string $existing): bool => $this->normalizedSection($existing) === $wanted);
+            ->first(fn (string $existing): bool => $this->normalizedSection($existing) === $wanted);
     }
 
     /**

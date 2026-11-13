@@ -107,6 +107,47 @@ class ImportColumns
     }
 
     /**
+     * Get the largest file size as people read it: "2 MB" (or "512 KB" below one megabyte).
+     */
+    public static function maxFileSizeLabel(): string
+    {
+        $kilobytes = self::maxKilobytes();
+
+        return $kilobytes >= 1024
+            ? rtrim(rtrim(number_format($kilobytes / 1024, 1), '0'), '.').' MB'
+            : $kilobytes.' KB';
+    }
+
+    /**
+     * Get the validation rules of the uploaded file (shared by both portals' upload forms).
+     *
+     * @return list<string>
+     */
+    public static function fileRules(): array
+    {
+        return ['required', 'file', 'mimes:csv,txt', 'extensions:csv,txt', 'max:'.self::maxKilobytes()];
+    }
+
+    /**
+     * Get the messages of the uploaded file's rules.
+     *
+     * @return array<string, string>
+     */
+    public static function fileMessages(): array
+    {
+        $notCsv = 'Upload a CSV file (.csv). In Excel, choose File › Save As › CSV UTF-8.';
+
+        return [
+            'file.required' => 'Choose a CSV file to upload.',
+            'file.file' => 'The file could not be uploaded. Try again.',
+            'file.uploaded' => 'The file could not be uploaded. Make sure it is smaller than '.self::maxFileSizeLabel().'.',
+            'file.mimes' => $notCsv,
+            'file.extensions' => $notCsv,
+            'file.max' => 'The file must not be larger than '.self::maxFileSizeLabel().'.',
+        ];
+    }
+
+    /**
      * Get the required columns the file lacks, described the way the template names them.
      *
      * @return list<string>

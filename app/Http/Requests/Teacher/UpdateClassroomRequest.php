@@ -54,11 +54,16 @@ class UpdateClassroomRequest extends FormRequest
 
                 /** @var Classroom $classroom */
                 $classroom = $this->route('classroom');
-                $classroom->loadMissing('subject');
-                $section = (string) $this->string('section');
+                $takenSection = $this->takenSection(
+                    $classroom->school_year_id,
+                    $classroom->subject_id,
+                    $classroom->grade_level,
+                    (string) $this->string('section'),
+                    $classroom->id,
+                );
 
-                if ($this->sectionIsTaken($classroom->school_year_id, $classroom->subject_id, $classroom->grade_level, $section, $classroom->id)) {
-                    $validator->errors()->add('section', $this->duplicateSectionMessage($classroom->subject, $classroom->grade_level, $section));
+                if ($takenSection !== null) {
+                    $validator->errors()->add('section', $this->duplicateSectionMessage($classroom->loadMissing('subject')->subject, $classroom->grade_level, $takenSection));
                 }
             },
         ];
