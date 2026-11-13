@@ -183,7 +183,7 @@ it('registers the contract route :dataset', function (string $name, string $verb
 
     expect($route->methods())->toContain($verb)
         ->and($route->uri())->toBe($uri)
-        ->and($route->getActionName())->toBe('App\\Http\\Controllers\\'.$action);
+        ->and($route->getAction('uses'))->toBe('App\\Http\\Controllers\\'.$action);
 })->with('contract routes');
 
 it('omits the resource actions the contract leaves out', function (string $name) {
@@ -213,13 +213,13 @@ it('keeps the sign-out and dashboard redirect behind authentication only', funct
     expect(Route::getRoutes()->getByName($name)->middleware())->toBe(['web', 'auth']);
 })->with(['logout', 'dashboard']);
 
-it('scopes every nested quiz question route to its quiz', function (string $name) {
+it('scopes the question of the nested question resource to its quiz', function (string $name) {
+    expect(Route::getRoutes()->getByName($name)->bindingFields())->toHaveKey('question');
+})->with(['teacher.quizzes.questions.edit', 'teacher.quizzes.questions.update', 'teacher.quizzes.questions.destroy']);
+
+it('scopes the question of the other question routes to its quiz', function (string $name) {
     expect(Route::getRoutes()->getByName($name)->enforcesScopedBindings())->toBeTrue();
-})->with([
-    'teacher.quizzes.questions.create', 'teacher.quizzes.questions.store', 'teacher.quizzes.questions.edit',
-    'teacher.quizzes.questions.update', 'teacher.quizzes.questions.destroy', 'teacher.quizzes.questions.position.update',
-    'teacher.quizzes.questions.bank.store',
-]);
+})->with(['teacher.quizzes.questions.position.update', 'teacher.quizzes.questions.bank.store']);
 
 it('binds forum categories by slug', function () {
     expect(Route::getRoutes()->getByName('forum.categories.show')->bindingFieldFor('category'))->toBe('slug');

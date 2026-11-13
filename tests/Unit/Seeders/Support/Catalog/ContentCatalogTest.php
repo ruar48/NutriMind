@@ -78,11 +78,11 @@ it('awards rewards by rules that point at existing missions and subjects', funct
 
     foreach ($rewards as $reward) {
         expect($reward['rule'][0])->toBeIn(['activities', 'points', 'module', 'missions', 'quizzes_passed', 'perfect', 'mission', 'subject_activities']);
+        expect($reward['points_required'])->toBe($reward['rule'][0] === 'points' ? $reward['rule'][1] : null);
 
         match ($reward['rule'][0]) {
             'mission' => expect($missionTitles)->toContain($reward['rule'][1]),
             'subject_activities' => expect(SchoolCatalog::subjects())->toHaveKey($reward['rule'][1]),
-            'points' => expect($reward['points_required'])->toBe($reward['rule'][1]),
             default => expect($reward['rule'][1])->toBeInt()->toBeGreaterThan(0),
         };
     }

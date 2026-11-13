@@ -2,9 +2,7 @@
 
 namespace Database\Seeders\Support\Catalog;
 
-use App\Enums\GuardianRelationship;
 use App\Enums\LearningMode;
-use App\Enums\Sex;
 use Database\Seeders\Support\LearnerArchetype;
 use Illuminate\Support\Str;
 
@@ -356,21 +354,5 @@ final class PeopleCatalog
         }
 
         return Str::beforeLast($fullName, ' ');
-    }
-
-    /**
-     * Get the sex that matches a first name from the name pools.
-     */
-    public static function sexOf(string $firstName): Sex
-    {
-        return in_array($firstName, self::BOY_NAMES, true) ? Sex::Male : Sex::Female;
-    }
-
-    /**
-     * Get the guardian relationship of a relationship key.
-     */
-    public static function relationship(string $key): GuardianRelationship
-    {
-        return GuardianRelationship::from($key);
     }
 }
