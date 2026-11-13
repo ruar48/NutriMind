@@ -71,6 +71,7 @@ class ChildController extends Controller
         $parent = $request->user();
         $search = $request->searchTerm();
         $grade = $request->gradeLevel();
+        $isFiltered = $search !== null || $grade !== null;
 
         $children = $parent->linkedStudents()
             ->with([
@@ -115,9 +116,9 @@ class ChildController extends Controller
                     ],
                 ];
             })->all(),
-            'showFilters' => $search !== null || $grade !== null || $parent->linkedStudents()->count() > self::FILTER_THRESHOLD,
+            'showFilters' => $isFiltered || $children->total() > self::FILTER_THRESHOLD,
             'filters' => ['grade' => $grade?->value],
-            'isFiltered' => $search !== null || $grade !== null,
+            'isFiltered' => $isFiltered,
         ]);
     }
 

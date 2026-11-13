@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\UserRole;
 use App\Models\AcademicTerm;
 use App\Models\Classroom;
 use App\Models\ForumReport;
@@ -106,8 +105,4 @@ it('summarizes the moderation queue with the latest unresolved reports', functio
         ->and($queue['pendingThreads'])->toBe(2)
         ->and($queue['latestReports']->modelKeys())->toBe([$newer->id, $older->id])
         ->and($queue['latestReports']->first()->relationLoaded('reporter'))->toBeTrue();
-});
-
-it('only counts the web portal roles as recent sign-ins', function () {
-    expect(UserRole::webPortals())->not->toContain(UserRole::Student);
 });

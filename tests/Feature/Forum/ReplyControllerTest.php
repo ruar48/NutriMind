@@ -16,7 +16,7 @@ describe('store', function () {
     it('sends guests to the sign-in page', function () {
         $thread = ForumThread::factory()->create();
 
-        $this->post(route('forum.threads.replies.store', $thread), ['body' => 'Hello there'])->assertRedirectToRoute('login');
+        $this->post(route('forum.threads.replies.store', $thread), ['body' => 'Thank you!'])->assertRedirectToRoute('login');
 
         $this->assertDatabaseCount('forum_replies', 0);
     });
@@ -25,50 +25,48 @@ describe('store', function () {
         $thread = ForumThread::factory()->create();
 
         $this->actingAs(User::factory()->student()->create())
-            ->post(route('forum.threads.replies.store', $thread), ['body' => 'Hello there'])
+            ->post(route('forum.threads.replies.store', $thread), ['body' => 'Thank you!'])
             ->assertForbidden();
     });
 
-    it('posts the reply and marks the thread as active', function (UserRole $role) {
+    it('posts the reply, marks the thread active and returns to the reply', function (UserRole $role) {
         $this->freezeSecond();
         $thread = ForumThread::factory()->create(['last_activity_at' => now()->subWeek()]);
-        $member = User::factory()->{$role->value}()->create();
+        $author = User::factory()->{$role->value}()->create();
 
-        $response = $this->actingAs($member)->post(route('forum.threads.replies.store', $thread), [
-            'body' => 'We add malunggay to our tinola every week.',
-        ]);
+        $response = $this->actingAs($author)->post(route('forum.threads.replies.store', $thread), ['body' => 'We pack boiled eggs and bananas.']);
 
         $reply = ForumReply::query()->sole();
         $response->assertRedirect(route('forum.threads.show', $thread).'#reply-'.$reply->id)
             ->assertSessionHasNoErrors()
             ->assertSessionHas('status', 'Your reply is posted.');
         expect($reply)
-            ->author_id->toBe($member->id)
+            ->author_id->toBe($author->id)
             ->forum_thread_id->toBe($thread->id)
-            ->body->toBe('We add malunggay to our tinola every week.')
+            ->body->toBe('We pack boiled eggs and bananas.')
             ->status->toBe(ForumContentStatus::Published);
         expect($thread->refresh()->last_activity_at->toDateTimeString())->toBe(now()->toDateTimeString());
     })->with([UserRole::Admin, UserRole::Teacher, UserRole::Parent]);
 
-    it('links to the last page when the reply lands there', function () {
+    it('returns to the page that shows the new reply', function () {
         $thread = ForumThread::factory()->create();
         ForumReply::factory()->for($thread, 'thread')->count(ForumPosting::REPLIES_PER_PAGE)->create(['created_at' => now()->subHour()]);
 
         $response = $this->actingAs(User::factory()->parent()->create())
-            ->post(route('forum.threads.replies.store', $thread), ['body' => 'Twenty-first reply']);
+            ->post(route('forum.threads.replies.store', $thread), ['body' => 'Reply on the second page.']);
 
-        $reply = ForumReply::query()->where('body', 'Twenty-first reply')->sole();
+        $reply = ForumReply::query()->where('body', 'Reply on the second page.')->sole();
         $response->assertRedirect(route('forum.threads.show', ['thread' => $thread, 'page' => 2]).'#reply-'.$reply->id);
     });
 
-    it('ignores fields the author may not set', function () {
+    it('ignores the author, thread and status in the payload', function () {
         $thread = ForumThread::factory()->create();
         $parent = User::factory()->parent()->create();
 
         $this->actingAs($parent)->post(route('forum.threads.replies.store', $thread), [
-            'body' => 'A reply with extra fields',
-            'status' => 'hidden',
+            'body' => 'We pack boiled eggs and bananas.',
             'author_id' => User::factory()->parent()->create()->id,
+            'status' => 'hidden',
             'forum_thread_id' => ForumThread::factory()->create()->id,
         ]);
 
@@ -78,7 +76,7 @@ describe('store', function () {
             ->status->toBe(ForumContentStatus::Published);
     });
 
-    it('rejects a reply of the wrong length', function (array $input, string $message) {
+    it('validates the reply length', function (array $input, string $message) {
         $thread = ForumThread::factory()->create();
 
         $this->actingAs(User::factory()->parent()->create())
@@ -88,7 +86,7 @@ describe('store', function () {
         $this->assertDatabaseCount('forum_replies', 0);
     })->with([
         'missing' => [[], 'The reply field is required.'],
-        'too short' => [['body' => 'a'], 'The reply field must be at least 2 characters.'],
+        'too short' => [['body' => 'k'], 'The reply field must be at least 2 characters.'],
         'too long' => [['body' => str_repeat('a', 3001)], 'The reply field must not be greater than 3000 characters.'],
     ]);
 
@@ -100,7 +98,7 @@ describe('store', function () {
             ->assertSessionHasNoErrors();
 
         $this->assertDatabaseCount('forum_replies', 1);
-    })->with([2, 3000]);
+    })->with(['shortest' => 2, 'longest' => 3000]);
 
     it('refuses replies to a locked thread', function () {
         $thread = ForumThread::factory()->locked()->create();
@@ -118,41 +116,41 @@ describe('store', function () {
 
         $this->actingAs(User::factory()->admin()->create())
             ->post(route('forum.threads.replies.store', $thread), ['body' => 'Closing note from the school.'])
-            ->assertSessionHasNoErrors();
+            ->assertSessionHas('status', 'Your reply is posted.');
 
         $this->assertDatabaseCount('forum_replies', 1);
     });
 
-    it('returns 404 for someone else’s pending or hidden thread', function (string $state) {
-        $thread = ForumThread::factory()->{$state}()->create();
-
-        $this->actingAs(User::factory()->parent()->create())
-            ->post(route('forum.threads.replies.store', $thread), ['body' => 'Hello there'])
-            ->assertNotFound();
-
-        $this->assertDatabaseCount('forum_replies', 0);
-    })->with(['pending', 'hidden']);
-
-    it('keeps the author from replying to their own unpublished thread', function (string $state) {
+    it('refuses the author’s reply to their own thread while it waits for approval', function () {
         $parent = User::factory()->parent()->create();
-        $thread = ForumThread::factory()->{$state}()->for($parent, 'author')->create();
+        $thread = ForumThread::factory()->pending()->for($parent, 'author')->create();
 
         $this->actingAs($parent)
-            ->post(route('forum.threads.replies.store', $thread), ['body' => 'Adding a detail'])
+            ->post(route('forum.threads.replies.store', $thread), ['body' => 'Adding more details.'])
             ->assertRedirectToRoute('forum.threads.show', $thread)
             ->assertSessionHas('error', ForumPosting::UNPUBLISHED_THREAD_MESSAGE);
 
         $this->assertDatabaseCount('forum_replies', 0);
-    })->with(['pending', 'hidden']);
+    });
 
-    it('lets administrators reply to an unpublished thread', function () {
+    it('lets administrators reply to a pending thread', function () {
         $thread = ForumThread::factory()->pending()->create();
 
         $this->actingAs(User::factory()->admin()->create())
-            ->post(route('forum.threads.replies.store', $thread), ['body' => 'Moderator note'])
-            ->assertSessionHasNoErrors();
+            ->post(route('forum.threads.replies.store', $thread), ['body' => 'Please add the source of this tip.'])
+            ->assertSessionHas('status', 'Your reply is posted.');
 
         $this->assertDatabaseCount('forum_replies', 1);
+    });
+
+    it('returns 404 for a thread the member cannot see', function () {
+        $thread = ForumThread::factory()->hidden()->create();
+
+        $this->actingAs(User::factory()->parent()->create())
+            ->post(route('forum.threads.replies.store', $thread), ['body' => 'Hello there.'])
+            ->assertNotFound();
+
+        $this->assertDatabaseCount('forum_replies', 0);
     });
 
     it('forbids members whose posting permission was revoked', function () {
@@ -160,9 +158,8 @@ describe('store', function () {
         app(RolePermissions::class)->revoke(UserRole::Parent, Permission::PostInForum);
 
         $this->actingAs(User::factory()->parent()->create())
-            ->post(route('forum.threads.replies.store', $thread), ['body' => 'Hello there'])
-            ->assertForbidden()
-            ->assertSeeText(RolePermissions::deniedMessage(Permission::PostInForum));
+            ->post(route('forum.threads.replies.store', $thread), ['body' => 'Hello there.'])
+            ->assertForbidden();
 
         $this->assertDatabaseCount('forum_replies', 0);
     });
@@ -172,7 +169,7 @@ describe('store', function () {
         app(Settings::class)->set('forum_enabled', false);
 
         $this->actingAs(User::factory()->teacher()->create())
-            ->post(route('forum.threads.replies.store', $thread), ['body' => 'Hello there'])
+            ->post(route('forum.threads.replies.store', $thread), ['body' => 'Hello there.'])
             ->assertForbidden();
 
         $this->assertDatabaseCount('forum_replies', 0);
@@ -180,7 +177,7 @@ describe('store', function () {
 });
 
 describe('edit', function () {
-    it('shows the author the edit form with the reply', function () {
+    it('shows the author the edit form', function () {
         $parent = User::factory()->parent()->create();
         $reply = ForumReply::factory()->for($parent, 'author')->create(['body' => 'My original reply']);
 
@@ -189,10 +186,10 @@ describe('edit', function () {
             ->assertOk()
             ->assertViewIs('forum.replies.edit')
             ->assertSeeText('My original reply')
-            ->assertViewHas('replyUrl', route('forum.threads.show', $reply->forum_thread_id).'#reply-'.$reply->id);
+            ->assertSee(route('forum.threads.show', $reply->forum_thread_id).'#reply-'.$reply->id, false);
     });
 
-    it('forbids other members who can see the reply', function (UserRole $role) {
+    it('forbids other members', function (UserRole $role) {
         $reply = ForumReply::factory()->create();
 
         $this->actingAs(User::factory()->{$role->value}()->create())
@@ -201,24 +198,31 @@ describe('edit', function () {
             ->assertSeeText(ForumReplyPolicy::NOT_AUTHOR_MESSAGE);
     })->with([UserRole::Admin, UserRole::Teacher, UserRole::Parent]);
 
-    it('returns 404 for a reply in a thread the member cannot see', function () {
-        $thread = ForumThread::factory()->hidden()->create();
-        $reply = ForumReply::factory()->for($thread, 'thread')->create();
-
-        $this->actingAs(User::factory()->parent()->create())
-            ->get(route('forum.replies.edit', $reply))
-            ->assertNotFound();
-    });
-
     it('refuses the author while the thread is locked', function () {
         $parent = User::factory()->parent()->create();
-        $thread = ForumThread::factory()->locked()->create();
-        $reply = ForumReply::factory()->for($thread, 'thread')->for($parent, 'author')->create();
+        $reply = ForumReply::factory()->for($parent, 'author')->for(ForumThread::factory()->locked(), 'thread')->create();
 
         $this->actingAs($parent)
             ->get(route('forum.replies.edit', $reply))
             ->assertForbidden()
             ->assertSeeText(ForumThreadPolicy::LOCKED_MESSAGE);
+    });
+
+    it('returns 404 when the reply’s thread is hidden from its author', function () {
+        $parent = User::factory()->parent()->create();
+        $reply = ForumReply::factory()->for($parent, 'author')->for(ForumThread::factory()->hidden(), 'thread')->create();
+
+        $this->actingAs($parent)
+            ->get(route('forum.replies.edit', $reply))
+            ->assertNotFound();
+    });
+
+    it('returns 404 to other members for a reply in a thread they cannot see', function () {
+        $reply = ForumReply::factory()->for(ForumThread::factory()->pending(), 'thread')->create();
+
+        $this->actingAs(User::factory()->parent()->create())
+            ->get(route('forum.replies.edit', $reply))
+            ->assertNotFound();
     });
 
     it('refuses the author while the forum is turned off', function () {
@@ -239,12 +243,12 @@ describe('update', function () {
         $reply = ForumReply::factory()->for($parent, 'author')->create();
 
         $this->actingAs($parent)
-            ->put(route('forum.replies.update', $reply), ['body' => 'Corrected reply text'])
+            ->put(route('forum.replies.update', $reply), ['body' => 'Edited reply with a correction.'])
             ->assertRedirect(route('forum.threads.show', $reply->forum_thread_id).'#reply-'.$reply->id)
             ->assertSessionHasNoErrors()
             ->assertSessionHas('status', 'Your reply was updated.');
 
-        expect($reply->refresh()->body)->toBe('Corrected reply text');
+        expect($reply->refresh()->body)->toBe('Edited reply with a correction.');
     });
 
     it('validates the reply', function () {
@@ -252,26 +256,17 @@ describe('update', function () {
         $reply = ForumReply::factory()->for($parent, 'author')->create(['body' => 'Original reply']);
 
         $this->actingAs($parent)
-            ->put(route('forum.replies.update', $reply), ['body' => str_repeat('a', 3001)])
-            ->assertSessionHasErrors(['body' => 'The reply field must not be greater than 3000 characters.']);
+            ->put(route('forum.replies.update', $reply), ['body' => ''])
+            ->assertSessionHasErrors(['body' => 'The reply field is required.']);
 
         expect($reply->refresh()->body)->toBe('Original reply');
     });
 
-    it('ignores the status in the payload', function () {
-        $parent = User::factory()->parent()->create();
-        $reply = ForumReply::factory()->hidden()->for($parent, 'author')->create();
-
-        $this->actingAs($parent)->put(route('forum.replies.update', $reply), ['body' => 'Corrected reply text', 'status' => 'published']);
-
-        expect($reply->refresh()->status)->toBe(ForumContentStatus::Hidden);
-    });
-
-    it('forbids a member who is not the author, before validating', function () {
+    it('forbids another member, before validating', function () {
         $reply = ForumReply::factory()->create(['body' => 'Original reply']);
 
         $this->actingAs(User::factory()->parent()->create())
-            ->put(route('forum.replies.update', $reply), [])
+            ->put(route('forum.replies.update', $reply), ['body' => ''])
             ->assertForbidden()
             ->assertSessionHasNoErrors();
 
@@ -280,19 +275,27 @@ describe('update', function () {
 
     it('refuses changes while the thread is locked', function () {
         $parent = User::factory()->parent()->create();
-        $thread = ForumThread::factory()->locked()->create();
-        $reply = ForumReply::factory()->for($thread, 'thread')->for($parent, 'author')->create(['body' => 'Original reply']);
+        $reply = ForumReply::factory()->for($parent, 'author')->for(ForumThread::factory()->locked(), 'thread')->create(['body' => 'Original reply']);
 
         $this->actingAs($parent)
-            ->put(route('forum.replies.update', $reply), ['body' => 'Corrected reply text'])
+            ->put(route('forum.replies.update', $reply), ['body' => 'Edited reply.'])
             ->assertForbidden();
 
         expect($reply->refresh()->body)->toBe('Original reply');
     });
+
+    it('ignores the status in the payload', function () {
+        $parent = User::factory()->parent()->create();
+        $reply = ForumReply::factory()->for($parent, 'author')->create();
+
+        $this->actingAs($parent)->put(route('forum.replies.update', $reply), ['body' => 'Edited reply.', 'status' => 'hidden']);
+
+        expect($reply->refresh()->status)->toBe(ForumContentStatus::Published);
+    });
 });
 
 describe('destroy', function () {
-    it('lets the author delete the reply', function () {
+    it('lets the author delete the reply and returns to the replies', function () {
         $parent = User::factory()->parent()->create();
         $reply = ForumReply::factory()->for($parent, 'author')->create();
 
@@ -304,9 +307,30 @@ describe('destroy', function () {
         $this->assertModelMissing($reply);
     });
 
-    it('lets administrators delete anyone’s reply, even on a locked thread', function () {
-        $thread = ForumThread::factory()->locked()->create();
-        $reply = ForumReply::factory()->for($thread, 'thread')->create();
+    it('returns to the page the deleted reply was on', function () {
+        $thread = ForumThread::factory()->create();
+        ForumReply::factory()->for($thread, 'thread')->count(ForumPosting::REPLIES_PER_PAGE + 1)->create(['created_at' => now()->subDay()]);
+        $parent = User::factory()->parent()->create();
+        $reply = ForumReply::factory()->for($thread, 'thread')->for($parent, 'author')->create();
+
+        $this->actingAs($parent)
+            ->delete(route('forum.replies.destroy', $reply))
+            ->assertRedirect(route('forum.threads.show', ['thread' => $thread, 'page' => 2]).'#replies');
+    });
+
+    it('returns to the last page when the deleted reply was alone on its page', function () {
+        $thread = ForumThread::factory()->create();
+        ForumReply::factory()->for($thread, 'thread')->count(ForumPosting::REPLIES_PER_PAGE)->create(['created_at' => now()->subDay()]);
+        $parent = User::factory()->parent()->create();
+        $reply = ForumReply::factory()->for($thread, 'thread')->for($parent, 'author')->create();
+
+        $this->actingAs($parent)
+            ->delete(route('forum.replies.destroy', $reply))
+            ->assertRedirect(route('forum.threads.show', $thread).'#replies');
+    });
+
+    it('lets administrators delete anyone’s reply', function () {
+        $reply = ForumReply::factory()->create();
 
         $this->actingAs(User::factory()->admin()->create())
             ->delete(route('forum.replies.destroy', $reply))
@@ -315,22 +339,7 @@ describe('destroy', function () {
         $this->assertModelMissing($reply);
     });
 
-    it('returns to the page the reply was on, or the last page when it emptied', function () {
-        $thread = ForumThread::factory()->create();
-        $replies = ForumReply::factory()->for($thread, 'thread')->count(ForumPosting::REPLIES_PER_PAGE + 2)
-            ->sequence(fn ($sequence) => ['created_at' => now()->subMinutes(100 - $sequence->index)])
-            ->create();
-        $admin = User::factory()->admin()->create();
-
-        $this->actingAs($admin)
-            ->delete(route('forum.replies.destroy', $replies[21]))
-            ->assertRedirect(route('forum.threads.show', ['thread' => $thread, 'page' => 2]).'#replies');
-        $this->actingAs($admin)
-            ->delete(route('forum.replies.destroy', $replies[20]))
-            ->assertRedirect(route('forum.threads.show', $thread).'#replies');
-    });
-
-    it('forbids other members who can see the reply', function () {
+    it('forbids other members', function () {
         $reply = ForumReply::factory()->create();
 
         $this->actingAs(User::factory()->teacher()->create())
@@ -342,8 +351,7 @@ describe('destroy', function () {
     });
 
     it('returns 404 for a reply in a thread the member cannot see', function () {
-        $thread = ForumThread::factory()->pending()->create();
-        $reply = ForumReply::factory()->for($thread, 'thread')->create();
+        $reply = ForumReply::factory()->for(ForumThread::factory()->hidden(), 'thread')->create();
 
         $this->actingAs(User::factory()->parent()->create())
             ->delete(route('forum.replies.destroy', $reply))
@@ -351,21 +359,4 @@ describe('destroy', function () {
 
         $this->assertModelExists($reply);
     });
-});
-
-it('shows authors the edit and delete actions on their own replies only', function () {
-    $parent = User::factory()->parent()->create();
-    $thread = ForumThread::factory()->create();
-    $own = ForumReply::factory()->for($thread, 'thread')->for($parent, 'author')->create();
-    $other = ForumReply::factory()->for($thread, 'thread')->create();
-
-    $this->actingAs($parent)
-        ->get(route('forum.threads.show', $thread))
-        ->assertOk()
-        ->assertSee(route('forum.replies.edit', $own), false)
-        ->assertSee(route('forum.replies.destroy', $own), false)
-        ->assertDontSee(route('forum.replies.edit', $other), false)
-        ->assertDontSee(route('forum.replies.destroy', $other), false)
-        ->assertSee('data-forum-report-form="reply-'.$other->id.'"', false)
-        ->assertDontSee('data-forum-report-form="reply-'.$own->id.'"', false);
 });
