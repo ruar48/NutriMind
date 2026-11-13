@@ -26,7 +26,7 @@ final readonly class ImportResult
      * @param  int  $parentsCreated  New parent accounts.
      * @param  int  $guardiansLinked  Parent–learner links added.
      * @param  list<array{name: string, username: string, password: string, role: UserRole}>  $credentials  Sign-in
-     *                                                                                                       details of every new account, in row order (a parent's "username" is the email address they sign in with).
+     *                                                                                                      details of every new account, in row order (a parent's "username" is the email address they sign in with).
      */
     public function __construct(
         public int $created,

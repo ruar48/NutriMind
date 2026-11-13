@@ -95,6 +95,31 @@ describe('index', function () use ($otherRoles) {
             ->assertViewHas('teachers', fn (LengthAwarePaginator $teachers): bool => $teachers->total() === 1);
     });
 
+    it('sorts by last sign-in, most recent first', function () {
+        $this->freezeSecond();
+        User::factory()->teacher()->create(['name' => 'Older', 'last_login_at' => now()->subWeek()]);
+        User::factory()->teacher()->create(['name' => 'Never', 'last_login_at' => null]);
+        User::factory()->teacher()->create(['name' => 'Newer', 'last_login_at' => now()->subHour()]);
+
+        $this->actingAs(User::factory()->admin()->create())
+            ->get(route('admin.teachers.index', ['sort' => 'last_login_at', 'direction' => 'desc']))
+            ->assertViewHas('teachers', fn (LengthAwarePaginator $teachers): bool => $teachers->pluck('name')->all() === ['Newer', 'Older', 'Never']);
+    });
+
+    it('renders several teachers with their actions without lazy loading', function () {
+        $health = Subject::factory()->create();
+        foreach (User::factory()->teaching($health)->count(3)->create() as $teacher) {
+            Classroom::factory()->for($teacher, 'teacher')->for($health)->create();
+        }
+        User::factory()->teacher()->inactive()->create(['name' => 'Ramon Gutierrez', 'last_login_at' => null]);
+
+        $this->actingAs(User::factory()->admin()->create())
+            ->get(route('admin.teachers.index'))
+            ->assertOk()
+            ->assertSeeText(['Ramon Gutierrez', 'Never', 'Inactive', 'Reactivate'])
+            ->assertSee('data-account-menu', false);
+    });
+
     it('shows the empty states', function (array $query, string $text) {
         $this->actingAs(User::factory()->admin()->create())
             ->get(route('admin.teachers.index', $query))

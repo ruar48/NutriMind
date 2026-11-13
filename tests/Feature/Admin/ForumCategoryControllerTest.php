@@ -58,15 +58,15 @@ describe('index', function () {
     ]);
 
     it('offers to delete only categories without threads', function () {
-        $empty = ForumCategory::factory()->create();
-        $used = ForumCategory::factory()->create();
+        ForumCategory::factory()->create(['name' => 'Empty Topic']);
+        $used = ForumCategory::factory()->create(['name' => 'Busy Topic']);
         ForumThread::factory()->for($used, 'category')->create();
 
         $this->actingAs(User::factory()->admin()->create())
             ->get(route('admin.forum-categories.index'))
             ->assertOk()
-            ->assertSee(route('admin.forum-categories.destroy', $empty), false)
-            ->assertDontSee(route('admin.forum-categories.destroy', $used), false)
+            ->assertSeeText('Delete “Empty Topic”?')
+            ->assertDontSeeText('Delete “Busy Topic”?')
             ->assertSeeText('Has threads');
     });
 
@@ -107,7 +107,7 @@ describe('create', function () {
             ->assertOk()
             ->assertViewIs('admin.forum-categories.create')
             ->assertSee('value="8"', false)
-            ->assertSee('value="messages-square" checked', false);
+            ->assertSee('value="messages-square" class="sr-only" checked', false);
     });
 
     it('forbids teachers', function () {
@@ -245,16 +245,18 @@ describe('edit', function () {
             ->assertViewIs('admin.forum-categories.edit')
             ->assertSee('value="Game Help"', false)
             ->assertSeeText('This category has 3 threads.')
-            ->assertDontSee(route('admin.forum-categories.destroy', $category), false);
+            ->assertDontSeeText('Delete “Game Help”?')
+            ->assertDontSee('name="_method" value="DELETE"', false);
     });
 
     it('offers to delete an empty category', function () {
-        $category = ForumCategory::factory()->create();
+        $category = ForumCategory::factory()->create(['name' => 'Game Help']);
 
         $this->actingAs(User::factory()->admin()->create())
             ->get(route('admin.forum-categories.edit', $category))
             ->assertOk()
-            ->assertSee(route('admin.forum-categories.destroy', $category), false);
+            ->assertSeeText('Delete “Game Help”?')
+            ->assertSee('<input type="hidden" name="_method" value="DELETE">', false);
     });
 
     it('returns 404 for an unknown slug', function () {

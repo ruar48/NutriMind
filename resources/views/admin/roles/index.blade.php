@@ -104,8 +104,11 @@
                             @foreach ($roles as $role)
                                 <x-table.td align="center" data-permission-cell="{{ $role->value }}">
                                     @if ($role === \App\Enums\UserRole::Admin)
-                                        <span class="inline-flex size-8 items-center justify-center rounded-lg bg-grape-50 text-grape-700 ring-1 ring-grape-600/15 ring-inset dark:bg-grape-400/10 dark:text-grape-300 dark:ring-grape-400/20" title="Administrators always have every permission" data-permission-locked>
-                                            <x-icon name="lock" class="size-4" />
+                                        <span class="relative inline-flex size-8 items-center justify-center rounded-lg bg-grape-50 text-grape-700 ring-1 ring-grape-600/15 ring-inset dark:bg-grape-400/10 dark:text-grape-300 dark:ring-grape-400/20" title="Administrators always have every permission" data-permission-locked>
+                                            <x-icon name="check" class="size-4" stroke-width="2.5" />
+                                            <span class="absolute -right-1 -bottom-1 grid size-4 place-items-center rounded-full bg-white text-grape-700 ring-1 ring-grape-600/20 dark:bg-ink-900 dark:text-grape-300 dark:ring-grape-400/25">
+                                                <x-icon name="lock" class="size-2.5" stroke-width="2.5" />
+                                            </span>
                                             <span class="sr-only">Always granted to administrators</span>
                                         </span>
                                     @elseif (in_array($role, $permission->roles(), true))

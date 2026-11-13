@@ -8,9 +8,7 @@ use App\Models\User;
 use App\Services\StudentImport\PendingImports;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\MessageBag;
 use Illuminate\Support\Str;
-use Illuminate\Support\ViewErrorBag;
 use Tests\Feature\Services\StudentImport\Support\StudentImportCsv;
 
 describe('create', function () {
@@ -135,9 +133,9 @@ describe('store', function () {
         expect(Storage::disk('local')->allFiles())->toBe([]);
     })->with([
         'no file' => [fn (): array => [], 'file', 'Choose a CSV file to upload.'],
-        'an image' => [fn (): array => ['file' => \Illuminate\Http\UploadedFile::fake()->image('photo.png')], 'file', 'Upload a CSV file (.csv). In Excel, choose File › Save As › CSV UTF-8.'],
-        'a spreadsheet' => [fn (): array => ['file' => \Illuminate\Http\UploadedFile::fake()->create('learners.xlsx', 10, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')], 'file', 'Upload a CSV file (.csv). In Excel, choose File › Save As › CSV UTF-8.'],
-        'a file over the size limit' => [fn (): array => ['file' => \Illuminate\Http\UploadedFile::fake()->create('learners.csv', 2049, 'text/csv')], 'file', 'The file must not be larger than 2 MB.'],
+        'an image' => [fn (): array => ['file' => UploadedFile::fake()->image('photo.png')], 'file', 'Upload a CSV file (.csv). In Excel, choose File › Save As › CSV UTF-8.'],
+        'a spreadsheet' => [fn (): array => ['file' => UploadedFile::fake()->create('learners.xlsx', 10, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')], 'file', 'Upload a CSV file (.csv). In Excel, choose File › Save As › CSV UTF-8.'],
+        'a file over the size limit' => [fn (): array => ['file' => UploadedFile::fake()->create('learners.csv', 2049, 'text/csv')], 'file', 'The file must not be larger than 2 MB.'],
         'a classroom that does not exist' => [fn (): array => ['classroom_id' => 999, 'file' => StudentImportCsv::upload(StudentImportCsv::make([StudentImportCsv::row()]))], 'classroom_id', 'Choose a classroom that is not archived.'],
         'a classroom that is not a number' => [fn (): array => ['classroom_id' => 'abc', 'file' => StudentImportCsv::upload(StudentImportCsv::make([StudentImportCsv::row()]))], 'classroom_id', 'Choose a classroom from the list.'],
     ]);

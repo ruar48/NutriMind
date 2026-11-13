@@ -7,6 +7,7 @@ use App\Models\Classroom;
 use App\Models\User;
 use App\Policies\ClassroomPolicy;
 use App\Services\RolePermissions;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Tests\Feature\Services\StudentImport\Support\StudentImportCsv;
@@ -117,7 +118,7 @@ describe('store', function () {
         expect(Storage::disk('local')->allFiles())->toBe([]);
     })->with([
         'no file' => [fn () => null, 'Choose a CSV file to upload.'],
-        'a PDF' => [fn () => \Illuminate\Http\UploadedFile::fake()->create('list.pdf', 10, 'application/pdf'), 'Upload a CSV file (.csv). In Excel, choose File › Save As › CSV UTF-8.'],
+        'a PDF' => [fn () => UploadedFile::fake()->create('list.pdf', 10, 'application/pdf'), 'Upload a CSV file (.csv). In Excel, choose File › Save As › CSV UTF-8.'],
         'no name columns' => [fn () => StudentImportCsv::upload("lrn\n136742210001\n"), 'The file is missing the first_name and last_name columns (or a name column).'],
         'no rows' => [fn () => StudentImportCsv::upload("first_name,last_name\n"), 'The file has no learner rows. Add one learner per row below the heading row.'],
     ]);

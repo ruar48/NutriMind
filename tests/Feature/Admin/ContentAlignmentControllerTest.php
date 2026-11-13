@@ -10,6 +10,7 @@ use App\Models\Subject;
 use App\Models\User;
 use App\Services\Content\CompetencyCoverage;
 use App\Services\Content\CoverageStatus;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Create one covered, one partial and one not-covered competency in a subject.
@@ -135,6 +136,25 @@ it('paginates twenty competencies per page', function () {
         ->assertViewHas('competencies', fn ($competencies): bool => $competencies->total() === 21
             && $competencies->count() === 1
             && $competencies->first()->code === 'H5N-IA-21');
+});
+
+it('renders more competencies without more queries', function () {
+    $admin = User::factory()->admin()->create();
+    $queries = function () use ($admin): int {
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $this->actingAs($admin)->get(route('admin.content-alignment.index'))->assertOk();
+
+        return count(DB::getQueryLog());
+    };
+    contentAlignmentScenario(Subject::factory()->create());
+    $queries();
+    $single = $queries();
+
+    contentAlignmentScenario(Subject::factory()->create());
+    contentAlignmentScenario(Subject::factory()->create());
+
+    expect($queries())->toBe($single);
 });
 
 it('explains the page when no lesson plan has a code yet', function () {

@@ -44,6 +44,8 @@ describe('index', function () {
             ->assertSee('id="teacher-'.$teacher->id.'"', false)
             ->assertSee('action="'.route('admin.subject-assignments.update', $teacher).'"', false)
             ->assertSeeText('Revoking removes access to 2 classrooms and 1 quiz.')
+            ->assertSee('data-modal="revoke-subjects-'.$teacher->id.'"', false)
+            ->assertSee('form="assignment-form-'.$teacher->id.'"', false)
             ->assertSee('id="teacher-'.$teacher->id.'-subject-'.$science->id.'"', false);
         expect($response->getContent())
             ->toMatch('#<input[^>]*id="teacher-'.$teacher->id.'-subject-'.$health->id.'"[^>]*\schecked(?=[\s/>])#')

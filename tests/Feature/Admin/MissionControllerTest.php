@@ -11,6 +11,7 @@ use App\Models\Mission;
 use App\Models\MissionProgress;
 use App\Models\Subject;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 /**
  * A valid mission form submission.

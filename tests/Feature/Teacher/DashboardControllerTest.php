@@ -6,7 +6,7 @@ use App\Models\Classroom;
 use App\Models\Quiz;
 use App\Models\QuizAttempt;
 use App\Models\User;
-use App\Policies\Concerns\AuthorizesAccess;
+use App\Policies\ClassroomPolicy;
 use App\Services\RolePermissions;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;

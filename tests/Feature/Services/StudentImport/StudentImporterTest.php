@@ -7,6 +7,7 @@ use App\Enums\UserRole;
 use App\Models\Classroom;
 use App\Models\User;
 use App\Services\StudentImport\StudentImporter;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Hash;
 use Tests\Feature\Services\StudentImport\Support\StudentImportCsv;
 
@@ -193,7 +194,7 @@ it('rolls everything back when one account cannot be saved', function () {
     StudentImportCsv::learner('136742210002');
     $usersBefore = User::query()->count();
 
-    expect(fn () => app(StudentImporter::class)->import($preview, $classroom))->toThrow(\Illuminate\Database\UniqueConstraintViolationException::class)
+    expect(fn () => app(StudentImporter::class)->import($preview, $classroom))->toThrow(UniqueConstraintViolationException::class)
         ->and(User::query()->count())->toBe($usersBefore)
         ->and($classroom->students()->count())->toBe(0)
         ->and(User::query()->where('email', 'maria@example.com')->exists())->toBeFalse();

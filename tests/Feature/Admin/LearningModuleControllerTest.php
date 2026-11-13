@@ -12,6 +12,7 @@ use App\Models\MissionProgress;
 use App\Models\Quiz;
 use App\Models\Subject;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 /**
  * A valid module form submission.
@@ -135,6 +136,27 @@ describe('index', function () {
             ->get(route('admin.modules.index', ['subject' => 'abc', 'grade' => '9', 'quarter' => '7', 'status' => 'gone', 'search' => ['x']]))
             ->assertOk()
             ->assertViewHas('modules', fn ($modules): bool => $modules->total() === 2);
+    });
+
+    it('renders more modules without more queries', function () {
+        $admin = User::factory()->admin()->create();
+        $queries = function () use ($admin): int {
+            DB::flushQueryLog();
+            DB::enableQueryLog();
+            $this->actingAs($admin)->get(route('admin.modules.index'))->assertOk();
+
+            return count(DB::getQueryLog());
+        };
+        LearningActivity::factory()->for(LearningModule::factory(), 'module')->create();
+        $queries();
+        $single = $queries();
+
+        foreach (LearningModule::factory()->count(4)->create() as $module) {
+            LearningActivity::factory()->for($module, 'module')->count(2)->create();
+            Mission::factory()->for($module, 'module')->create();
+        }
+
+        expect($queries())->toBe($single);
     });
 
     it('paginates twenty modules per page', function () {

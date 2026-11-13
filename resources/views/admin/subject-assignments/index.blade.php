@@ -85,10 +85,12 @@
                         data-assignment-teacher="{{ $teacher->id }}"
                     >
                         <form
+                            id="assignment-form-{{ $teacher->id }}"
                             method="POST"
                             action="{{ route('admin.subject-assignments.update', $teacher) }}"
                             data-submit-once
                             data-setup-assignment-form
+                            data-setup-revoke-dialog="revoke-subjects-{{ $teacher->id }}"
                         >
                             @csrf
                             @method('PUT')
@@ -152,6 +154,7 @@
                                                     :old="$failed"
                                                     data-setup-assigned="{{ $isAssigned ? '1' : '0' }}"
                                                     data-setup-locks="{{ $isAssigned ? $classroomCount : 0 }}"
+                                                    data-setup-subject="{{ $subject->name }}"
                                                 >
                                                     <span class="inline-flex flex-wrap items-center gap-2">
                                                         <span>{{ $subject->name }}</span>
@@ -178,6 +181,20 @@
                                 <x-button type="submit" size="sm" icon="check" :disabled="$choices->isEmpty()">Save subjects</x-button>
                             </div>
                         </form>
+
+                        <x-modal
+                            :name="'revoke-subjects-'.$teacher->id"
+                            :title="'Revoke subjects from '.$teacher->name.'?'"
+                            description="They lose access to these subjects’ classrooms, quizzes and lesson plans until you assign them again. Nothing is deleted."
+                            icon="lock"
+                            size="sm"
+                        >
+                            <ul class="flex flex-col gap-1.5 text-sm text-ink-700 dark:text-ink-200" data-setup-revoke-list></ul>
+                            <x-slot:footer>
+                                <x-button variant="secondary" data-modal-close data-modal-initial-focus>Cancel</x-button>
+                                <x-button type="submit" variant="danger" icon="lock" :form="'assignment-form-'.$teacher->id" data-setup-revoke-confirm>Revoke and save</x-button>
+                            </x-slot:footer>
+                        </x-modal>
                     </x-section>
                 @endforeach
 
