@@ -50,6 +50,11 @@ class PendingImports
     public const STALE_AFTER_HOURS = 24;
 
     /**
+     * The message shown when there are no sign-in details (left) to download.
+     */
+    public const NO_CREDENTIALS_MESSAGE = 'There are no sign-in details to download. They can be downloaded once, right after an import.';
+
+    /**
      * The longest original file name kept for display.
      */
     private const ORIGINAL_NAME_MAX_LENGTH = 150;

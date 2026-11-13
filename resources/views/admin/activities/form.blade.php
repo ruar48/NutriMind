@@ -4,7 +4,7 @@
 
 <x-layouts.app :title="$isEditing ? 'Edit '.$activity->title : 'New activity'">
     <x-page-header
-        eyebrow="Learning module · {{ $module->title }}"
+        eyebrow="Learning module"
         :title="$isEditing ? 'Edit activity' : 'New activity'"
         :description="$isEditing ? $activity->title : 'Add a lesson, video, reading, mini-game or practice round to '.$module->title.'.'"
         :breadcrumbs="[
