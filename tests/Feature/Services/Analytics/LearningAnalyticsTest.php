@@ -6,6 +6,7 @@ use App\Models\Classroom;
 use App\Models\QuizAttempt;
 use App\Models\QuizAttemptAnswer;
 use App\Models\QuizQuestion;
+use App\Models\Subject;
 use App\Models\User;
 use App\Services\Analytics\AnalyticsPeriod;
 use App\Services\Analytics\AnalyticsScope;
@@ -216,8 +217,8 @@ describe('performance breakdowns', function () {
 
     it('lists an active subject without results', function () {
         AnalyticsSchoolFixture::create();
-        \App\Models\Subject::factory()->create(['name' => 'Mathematics']);
-        \App\Models\Subject::factory()->inactive()->create(['name' => 'Arts']);
+        Subject::factory()->create(['name' => 'Mathematics']);
+        Subject::factory()->inactive()->create(['name' => 'Arts']);
 
         $subjects = app(LearningAnalytics::class)->subjectPerformance(AnalyticsScope::school(AnalyticsPeriod::lastDays(30)));
 
