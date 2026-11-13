@@ -29,6 +29,11 @@ final class DemoClock
     private const PLAY_DAY_WEIGHTS = [1 => 1.0, 2 => 1.0, 3 => 0.95, 4 => 0.95, 5 => 0.8, 6 => 0.45, 7 => 0.35];
 
     /**
+     * How many plausible moments are drawn before a moment outside the bounds is moved inside them.
+     */
+    private const PLAY_TIME_DRAWS = 12;
+
+    /**
      * Create a clock anchored to the given moment.
      */
     public function __construct(public readonly int $now) {}
@@ -117,8 +122,14 @@ final class DemoClock
                 * max(0.05, 1 + $lean * (1 - 2 * $position));
         }
 
-        $dayStart = $firstDay + $random->weighted($weights) * self::DAY;
-        $moment = $dayStart + self::playMinute($random, self::weekday($dayStart)) * 60 + $random->int(0, 59);
+        for ($draw = 1; $draw <= self::PLAY_TIME_DRAWS; $draw++) {
+            $dayStart = $firstDay + $random->weighted($weights) * self::DAY;
+            $moment = $dayStart + self::playMinute($random, self::weekday($dayStart)) * 60 + $random->int(0, 59);
+
+            if ($moment >= $from && $moment <= $until) {
+                return $moment;
+            }
+        }
 
         return self::within($random, $moment, $from, $until);
     }

@@ -2,65 +2,53 @@
 
 namespace App\Policies;
 
+use App\Enums\Permission;
 use App\Models\LearnerFeedback;
 use App\Models\User;
+use App\Policies\Concerns\AuthorizesAccess;
 use Illuminate\Auth\Access\Response;
 
 class LearnerFeedbackPolicy
 {
+    use AuthorizesAccess;
+
     /**
-     * Determine whether the user can view any models.
+     * Determine whether the user can list the feedback they wrote.
      */
-    public function viewAny(User $user): bool
+    public function viewAny(User $user): Response
     {
-        return false;
+        return $this->every(
+            fn (): Response => $this->teacher($user),
+            fn (): Response => $this->permission($user, Permission::GiveFeedback),
+        );
     }
 
     /**
-     * Determine whether the user can view the model.
+     * Determine whether the user can write feedback.
      */
-    public function view(User $user, LearnerFeedback $learnerFeedback): bool
+    public function create(User $user): Response
     {
-        return false;
+        return $this->viewAny($user);
     }
 
     /**
-     * Determine whether the user can create models.
+     * Determine whether the user can edit the feedback: only the teacher who wrote it.
      */
-    public function create(User $user): bool
+    public function update(User $user, LearnerFeedback $feedback): Response
     {
-        return false;
+        return $this->every(
+            fn (): Response => $user->isTeacher() && $this->isOwner($user, $feedback->teacher_id)
+                ? Response::allow()
+                : Response::denyAsNotFound(),
+            fn (): Response => $this->permission($user, Permission::GiveFeedback),
+        );
     }
 
     /**
-     * Determine whether the user can update the model.
+     * Determine whether the user can delete the feedback: only the teacher who wrote it.
      */
-    public function update(User $user, LearnerFeedback $learnerFeedback): bool
+    public function delete(User $user, LearnerFeedback $feedback): Response
     {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user, LearnerFeedback $learnerFeedback): bool
-    {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, LearnerFeedback $learnerFeedback): bool
-    {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, LearnerFeedback $learnerFeedback): bool
-    {
-        return false;
+        return $this->update($user, $feedback);
     }
 }

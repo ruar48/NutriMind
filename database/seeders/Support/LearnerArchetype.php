@@ -35,11 +35,11 @@ enum LearnerArchetype: string
     public function abilityRange(): array
     {
         return match ($this) {
-            self::Star => [0.92, 0.97],
-            self::Strong => [0.86, 0.92],
-            self::Steady => [0.80, 0.87],
-            self::Developing => [0.73, 0.81],
-            self::NeedsSupport => [0.58, 0.71],
+            self::Star => [0.89, 0.95],
+            self::Strong => [0.83, 0.89],
+            self::Steady => [0.78, 0.84],
+            self::Developing => [0.72, 0.79],
+            self::NeedsSupport => [0.56, 0.68],
         };
     }
 

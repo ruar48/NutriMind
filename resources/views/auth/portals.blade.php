@@ -34,7 +34,7 @@
     ];
 @endphp
 
-<x-layouts.guest title="Choose your portal" portal="leaf">
+<x-layouts.guest title="Choose your portal" portal="leaf" :school-name="$schoolName ?? null">
     <div>
         <p class="text-xs font-semibold tracking-[0.16em] text-leaf-700 uppercase dark:text-leaf-300">Welcome to NutriMind</p>
         <h1 class="mt-2 font-display text-3xl font-bold tracking-tight text-ink-950 dark:text-white">Choose your portal</h1>

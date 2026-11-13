@@ -2,64 +2,57 @@
 
 namespace App\Policies;
 
+use App\Enums\Permission;
 use App\Models\User;
+use App\Policies\Concerns\AuthorizesAccess;
 use Illuminate\Auth\Access\Response;
 
+/**
+ * Access to learner accounts from the teacher and parent portals.
+ *
+ * Administrators manage every account through the role:admin routes and need no policy.
+ */
 class UserPolicy
 {
+    use AuthorizesAccess;
+
     /**
-     * Determine whether the user can view any models.
+     * Determine whether the teacher can see the learner: enrolled in one of the teacher's classrooms of a
+     * subject still assigned to them (archived classrooms included). Other learners are reported as missing.
      */
-    public function viewAny(User $user): bool
+    public function viewAsTeacher(User $user, User $student): Response
     {
-        return false;
+        $canView = $user->isTeacher()
+            && $student->isStudent()
+            && $student->enrolledClassrooms()->accessibleBy($user)->exists();
+
+        return $canView ? Response::allow() : Response::denyAsNotFound();
     }
 
     /**
-     * Determine whether the user can view the model.
+     * Determine whether the teacher can write feedback for the learner.
      */
-    public function view(User $user, User $model): bool
+    public function giveFeedbackTo(User $user, User $student): Response
     {
-        return false;
+        return $this->every(
+            fn (): Response => $this->viewAsTeacher($user, $student),
+            fn (): Response => $this->permission($user, Permission::GiveFeedback),
+        );
     }
 
     /**
-     * Determine whether the user can create models.
+     * Determine whether the parent can follow the learner: a learner linked to them. Other learners are reported
+     * as missing; a linked learner is refused with a reason when the parent may not view child progress.
      */
-    public function create(User $user): bool
+    public function viewAsGuardian(User $user, User $student): Response
     {
-        return false;
-    }
+        $isLinked = $user->isParent()
+            && $student->isStudent()
+            && $user->linkedStudents()->whereKey($student->getKey())->exists();
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(User $user, User $model): bool
-    {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user, User $model): bool
-    {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, User $model): bool
-    {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, User $model): bool
-    {
-        return false;
+        return $this->every(
+            fn (): Response => $isLinked ? Response::allow() : Response::denyAsNotFound(),
+            fn (): Response => $this->permission($user, Permission::ViewChildProgress),
+        );
     }
 }

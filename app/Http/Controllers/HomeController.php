@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Services\Settings;
+use Illuminate\View\View;
 
 class HomeController extends Controller
 {
     /**
-     * Handle the incoming request.
+     * Show the public landing page.
      */
-    public function __invoke(Request $request)
+    public function __invoke(Settings $settings): View
     {
-        //
+        return view('welcome', [
+            'schoolName' => $settings->get('school_name'),
+        ]);
     }
 }

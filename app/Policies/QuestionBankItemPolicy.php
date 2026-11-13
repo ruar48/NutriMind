@@ -2,65 +2,98 @@
 
 namespace App\Policies;
 
+use App\Enums\Permission;
 use App\Models\QuestionBankItem;
 use App\Models\User;
+use App\Policies\Concerns\AuthorizesAccess;
 use Illuminate\Auth\Access\Response;
 
 class QuestionBankItemPolicy
 {
+    use AuthorizesAccess;
+
     /**
-     * Determine whether the user can view any models.
+     * The message shown when a teacher would change a shared item another teacher owns.
      */
-    public function viewAny(User $user): bool
+    public const NOT_OWNER_MESSAGE = 'Only the teacher who created this question can change it. Duplicate it to make your own copy.';
+
+    /**
+     * Determine whether the user can browse the question bank.
+     */
+    public function viewAny(User $user): Response
     {
-        return false;
+        return $this->every(
+            fn (): Response => $this->teacher($user),
+            fn (): Response => $this->permission($user, Permission::ManageQuestionBank),
+        );
     }
 
     /**
-     * Determine whether the user can view the model.
+     * Determine whether the user can open the item: their own or a shared one, in a subject they teach.
+     *
+     * Items outside the user's subjects and other teachers' private items are reported as missing (404),
+     * matching QuestionBankItem::visibleTo().
      */
-    public function view(User $user, QuestionBankItem $questionBankItem): bool
+    public function view(User $user, QuestionBankItem $item): Response
     {
-        return false;
+        return $this->every(
+            fn (): Response => $this->visible($user, $item),
+            fn (): Response => $this->permission($user, Permission::ManageQuestionBank),
+        );
     }
 
     /**
-     * Determine whether the user can create models.
+     * Determine whether the user can add items to the question bank.
      */
-    public function create(User $user): bool
+    public function create(User $user): Response
     {
-        return false;
+        return $this->every(
+            fn (): Response => $this->viewAny($user),
+            fn (): Response => $this->assignedSubject($user),
+        );
     }
 
     /**
-     * Determine whether the user can update the model.
+     * Determine whether the user can edit the item: only its owner.
      */
-    public function update(User $user, QuestionBankItem $questionBankItem): bool
+    public function update(User $user, QuestionBankItem $item): Response
     {
-        return false;
+        return $this->every(
+            fn (): Response => $this->view($user, $item),
+            fn (): Response => $this->isOwner($user, $item->teacher_id)
+                ? Response::allow()
+                : Response::deny(self::NOT_OWNER_MESSAGE),
+        );
     }
 
     /**
-     * Determine whether the user can delete the model.
+     * Determine whether the user can delete the item: only its owner.
      */
-    public function delete(User $user, QuestionBankItem $questionBankItem): bool
+    public function delete(User $user, QuestionBankItem $item): Response
     {
-        return false;
+        return $this->update($user, $item);
     }
 
     /**
-     * Determine whether the user can restore the model.
+     * Determine whether the user can share the item with other teachers of its subject, or stop sharing it.
      */
-    public function restore(User $user, QuestionBankItem $questionBankItem): bool
+    public function share(User $user, QuestionBankItem $item): Response
     {
-        return false;
+        return $this->every(
+            fn (): Response => $this->update($user, $item),
+            fn (): Response => $this->permission($user, Permission::ShareQuestions),
+        );
     }
 
     /**
-     * Determine whether the user can permanently delete the model.
+     * Allow a teacher of the item's subject who owns the item or sees it shared.
      */
-    public function forceDelete(User $user, QuestionBankItem $questionBankItem): bool
+    private function visible(User $user, QuestionBankItem $item): Response
     {
-        return false;
+        $isVisible = $user->isTeacher()
+            && $user->teachesSubject((int) $item->subject_id)
+            && ($this->isOwner($user, $item->teacher_id) || $item->is_shared);
+
+        return $isVisible ? Response::allow() : Response::denyAsNotFound();
     }
 }

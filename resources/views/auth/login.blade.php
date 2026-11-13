@@ -30,7 +30,7 @@
     $color = $portal->color();
 @endphp
 
-<x-layouts.guest :title="'Sign in · '.$portal->portalLabel()" :portal="$color">
+<x-layouts.guest :title="'Sign in · '.$portal->portalLabel()" :portal="$color" :school-name="$schoolName ?? null">
     <a href="{{ route('login') }}" class="inline-flex items-center gap-1.5 rounded-lg py-1 text-sm font-medium text-ink-500 transition hover:text-ink-900 pointer-coarse:py-2.5 dark:text-ink-400 dark:hover:text-white">
         <x-icon name="arrow-left" class="size-4" />
         Back to portals

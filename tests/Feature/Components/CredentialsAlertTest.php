@@ -29,7 +29,7 @@ it('lists every account in a warning alert with a copy button per row', function
         ->assertSee('data-copy="ben.cruz / river-17-guava"', false)
         ->assertSee('data-copy="carla.reyes / pearl-08-melon"', false)
         ->assertSee('aria-label="Copy sign-in details for Ben Cruz"', false);
-    expect(substr_count((string) $view, 'data-credential-row'))->toBe(3);
+    expect(preg_match_all('#<tr[^>]*\sdata-credential-row\b#', (string) $view))->toBe(3);
 });
 
 it('shows usernames and passwords in a monospace font', function () {

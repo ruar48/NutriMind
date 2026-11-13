@@ -6,6 +6,7 @@ use App\Enums\Permission;
 use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Container\Attributes\Scoped;
+use InvalidArgumentException;
 
 /**
  * The administrator-editable permission matrix.
@@ -103,11 +104,42 @@ class RolePermissions
     }
 
     /**
+     * Grant permissions to one role, keeping every other grant (permissions that do not apply to it are ignored).
+     *
+     * @throws InvalidArgumentException when the role is Administrator
+     */
+    public function grant(UserRole $role, Permission ...$permissions): void
+    {
+        $this->replaceGrants($role, [...$this->granted($role), ...$permissions]);
+    }
+
+    /**
+     * Revoke permissions from one role, keeping every other grant.
+     *
+     * @throws InvalidArgumentException when the role is Administrator
+     */
+    public function revoke(UserRole $role, Permission ...$permissions): void
+    {
+        $this->replaceGrants($role, array_filter(
+            $this->granted($role),
+            fn (Permission $permission): bool => ! in_array($permission, $permissions, true),
+        ));
+    }
+
+    /**
      * Restore the enum default roles of every permission.
      */
     public function reset(): void
     {
         $this->settings->set(self::SETTING_KEY, null);
+    }
+
+    /**
+     * Get the message shown when the matrix does not grant the permission.
+     */
+    public static function deniedMessage(Permission $permission): string
+    {
+        return 'You do not have permission to '.lcfirst($permission->label()).'.';
     }
 
     /**
@@ -121,6 +153,25 @@ class RolePermissions
             UserRole::cases(),
             fn (UserRole $role): bool => $role !== UserRole::Admin,
         ));
+    }
+
+    /**
+     * Store the matrix with one role's grants replaced.
+     *
+     * @param  array<Permission>  $permissions
+     *
+     * @throws InvalidArgumentException when the role is Administrator
+     */
+    private function replaceGrants(UserRole $role, array $permissions): void
+    {
+        if ($role === UserRole::Admin) {
+            throw new InvalidArgumentException('Administrators always hold every permission.');
+        }
+
+        $this->update([
+            ...$this->matrix(),
+            $role->value => array_map(fn (Permission $permission): string => $permission->value, $permissions),
+        ]);
     }
 
     /**

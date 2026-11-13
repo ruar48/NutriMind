@@ -2,65 +2,62 @@
 
 namespace App\Policies;
 
+use App\Enums\Permission;
 use App\Models\LessonPlan;
 use App\Models\User;
+use App\Policies\Concerns\AuthorizesAccess;
 use Illuminate\Auth\Access\Response;
 
 class LessonPlanPolicy
 {
+    use AuthorizesAccess;
+
     /**
-     * Determine whether the user can view any models.
+     * Determine whether the user can list their lesson plans.
      */
-    public function viewAny(User $user): bool
+    public function viewAny(User $user): Response
     {
-        return false;
+        return $this->every(
+            fn (): Response => $this->teacher($user),
+            fn (): Response => $this->permission($user, Permission::ManageLessonPlans),
+        );
     }
 
     /**
-     * Determine whether the user can view the model.
+     * Determine whether the user can open the lesson plan: its teacher, while they teach its subject.
      */
-    public function view(User $user, LessonPlan $lessonPlan): bool
+    public function view(User $user, LessonPlan $lessonPlan): Response
     {
-        return false;
+        return $this->every(
+            fn (): Response => $this->ownerWithSubjectAccess($user, $lessonPlan->teacher_id, $lessonPlan->subject_id),
+            fn (): Response => $this->permission($user, Permission::ManageLessonPlans),
+        );
     }
 
     /**
-     * Determine whether the user can create models.
+     * Determine whether the user can write lesson plans.
      */
-    public function create(User $user): bool
+    public function create(User $user): Response
     {
-        return false;
+        return $this->every(
+            fn (): Response => $this->viewAny($user),
+            fn (): Response => $this->assignedSubject($user),
+        );
     }
 
     /**
-     * Determine whether the user can update the model.
+     * Determine whether the user can edit the lesson plan and its alignment.
      */
-    public function update(User $user, LessonPlan $lessonPlan): bool
+    public function update(User $user, LessonPlan $lessonPlan): Response
     {
-        return false;
+        return $this->view($user, $lessonPlan);
     }
 
     /**
-     * Determine whether the user can delete the model.
+     * Determine whether the user can delete the lesson plan.
      */
-    public function delete(User $user, LessonPlan $lessonPlan): bool
+    public function delete(User $user, LessonPlan $lessonPlan): Response
     {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, LessonPlan $lessonPlan): bool
-    {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, LessonPlan $lessonPlan): bool
-    {
-        return false;
+        return $this->view($user, $lessonPlan);
     }
 }
