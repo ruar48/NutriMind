@@ -35,9 +35,9 @@ enum ReportType: string
     {
         return match ($this) {
             self::StudentPerformance => 'Average scores, performance bands, quizzes taken and passed, and levels for each learner.',
-            self::QuizResults => 'Every submitted quiz attempt with score, percentage, duration and offline-sync status.',
-            self::MissionProgress => 'Mission completion, progress and points earned by each learner.',
-            self::ClassroomSummary => 'Enrollment, average scores, pass rates and completion for each classroom.',
+            self::QuizResults => 'Attempts, participation, average score and pass rate for each published quiz.',
+            self::MissionProgress => 'Eligible learners, completions, completion rate and points awarded for each mission.',
+            self::ClassroomSummary => 'Enrollment, average score, quiz completion and recent activity for each classroom.',
             self::UserAccounts => 'Every account with its role, status, contact details and last sign-in.',
         };
     }
