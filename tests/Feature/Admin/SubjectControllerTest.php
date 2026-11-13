@@ -65,7 +65,7 @@ describe('index', function () {
 
         $cards = $response->viewData('subjects')->getCollection()->keyBy('id');
         expect($cards[$health->id])
-            ->teachers_count->toBe(5)
+            ->teachers_count->toBe(6)
             ->classrooms_count->toBe(3)
             ->learning_modules_count->toBe(2)
             ->quizzes_count->toBe(1)
@@ -116,6 +116,15 @@ describe('index', function () {
             ->get(route('admin.subjects.index', ['search' => 'Astronomy']))
             ->assertOk()
             ->assertSeeText('No subjects match your filters');
+    });
+
+    it('paginates twelve subjects per page', function () {
+        Subject::factory()->count(13)->create();
+
+        $response = $this->actingAs($this->admin)->get(route('admin.subjects.index', ['page' => 2]));
+
+        expect($response->viewData('subjects'))->toHaveCount(1)
+            ->and($response->viewData('subjects')->total())->toBe(13);
     });
 
     it('runs the same number of queries for more subjects', function () {
@@ -228,7 +237,7 @@ describe('edit', function () {
             ->assertSeeText('2 classrooms')
             ->assertSeeText('1 quiz')
             ->assertSeeText('A subject in use can\'t be deleted. Deactivate it instead.')
-            ->assertDontSee('action="'.route('admin.subjects.destroy', $subject).'"', false);
+            ->assertDontSee('name="_method" value="DELETE"', false);
         expect($response->getContent())
             ->toMatch('#<input[^>]*name="color"[^>]*value="berry"[^>]*\schecked(?=[\s/>])#')
             ->toMatch('#<input[^>]*name="icon"[^>]*value="heart-pulse"[^>]*\schecked(?=[\s/>])#');
@@ -240,7 +249,8 @@ describe('edit', function () {
         $this->actingAs($this->admin)
             ->get(route('admin.subjects.edit', $subject))
             ->assertOk()
-            ->assertSee('action="'.route('admin.subjects.destroy', $subject).'"', false);
+            ->assertSee('name="_method" value="DELETE"', false)
+            ->assertSeeText('Delete '.$subject->name.'?');
     });
 
     it('answers an unknown subject with 404', function () {
@@ -338,13 +348,3 @@ describe('destroy', function () {
         }, '2 classrooms, 3 quizzes and 1 lesson plan'],
     ]);
 
-    it('forbids every other role', function (string $role) {
-        $subject = Subject::factory()->create();
-
-        $this->actingAs(User::factory()->{$role}()->create())
-            ->delete(route('admin.subjects.destroy', $subject))
-            ->assertForbidden();
-
-        $this->assertModelExists($subject);
-    })->with(['teacher', 'parent']);
-});

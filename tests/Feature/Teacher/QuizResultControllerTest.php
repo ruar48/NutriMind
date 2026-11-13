@@ -11,7 +11,7 @@ use App\Models\QuizAttemptAnswer;
 use App\Models\QuizQuestion;
 use App\Models\Subject;
 use App\Models\User;
-use App\Policies\Concerns\AuthorizesAccess;
+use App\Policies\QuizPolicy;
 use App\Services\RolePermissions;
 
 /**
@@ -97,7 +97,7 @@ it('refuses the results of a quiz whose subject was revoked', function () {
     $this->actingAs($quiz->teacher)
         ->get(route('teacher.quizzes.results.show', $quiz))
         ->assertForbidden()
-        ->assertSeeText(AuthorizesAccess::SUBJECT_REVOKED_MESSAGE);
+        ->assertSeeText(QuizPolicy::SUBJECT_REVOKED_MESSAGE);
 });
 
 it('shows the headline figures, distribution, attempts, missing learners and item analysis', function () {

@@ -5,7 +5,7 @@ use App\Models\Classroom;
 use App\Models\Quiz;
 use App\Models\Subject;
 use App\Models\User;
-use App\Policies\Concerns\AuthorizesAccess;
+use App\Policies\ClassroomPolicy;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;

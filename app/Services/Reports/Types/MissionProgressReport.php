@@ -70,7 +70,7 @@ final class MissionProgressReport
             columns: $this->columns(),
             rows: $rows,
             notes: array_values(array_filter([
-                'Eligible learners are enrolled in a covered classroom of the mission’s subject and grade; only their progress is counted.',
+                'Eligible learners are enrolled in a reported classroom of the mission’s subject and grade; only their progress is counted.',
                 'Inactive missions are listed only when learners made progress on them.',
                 $scope->filters->hasPeriod() ? 'Completions are counted by completion date and missions in progress by start date.' : null,
             ])),
@@ -164,7 +164,7 @@ final class MissionProgressReport
         $inProgress = (int) $rows->sum(fn (ReportRow $row): int => $row->value('in_progress'));
 
         return [
-            ReportStat::count('Missions', $rows->count(), 'flag', 'carrot', 'Missions of the covered subjects and grades'),
+            ReportStat::count('Missions', $rows->count(), 'flag', 'carrot', 'For the classrooms’ subjects and grades'),
             ReportStat::count('Completions', $completed, 'circle-check', 'leaf', trans_choice(':count learner still in progress|:count learners still in progress', $inProgress)),
             ReportStat::percent('Completion rate', $eligible === 0 ? null : round($completed / $eligible * 100, 1), 'gauge', 'sky', $eligible === 0 ? 'No eligible learners yet' : 'Of every eligible learner and mission'),
             ReportStat::count('Points awarded', (int) $rows->sum(fn (ReportRow $row): int => $row->value('points')), 'sparkles', 'sun', 'XP earned on these missions'),

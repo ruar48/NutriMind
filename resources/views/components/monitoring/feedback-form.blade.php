@@ -66,7 +66,7 @@
         />
     </x-form.section>
 
-    <x-form.actions :cancel="$cancel" :submit="$submit" :submit-icon="$submitIcon">
+    <x-form.actions :cancel="$cancel" :submit="$submit" :submit-icon="$submitIcon" :sticky="false">
         <x-icon name="info" class="size-4" />
         @if ($isCreating)
             Visible feedback appears in the Parent Portal right away.

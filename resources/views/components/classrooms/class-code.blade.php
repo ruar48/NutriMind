@@ -5,6 +5,7 @@
 
 @php
     $isLarge = $size === 'lg';
+    $copyLabel = $isLarge ? 'Copy code' : 'Copy';
 @endphp
 
 <div {{ $attributes->class(['flex min-w-0 items-center', 'gap-2' => ! $isLarge, 'justify-between gap-3' => $isLarge]) }} data-class-code="{{ $code }}">
@@ -18,9 +19,9 @@
     </p>
     <x-copy-button
         :text="$code"
-        :label="$isLarge ? 'Copy code' : 'Copy'"
+        :label="$copyLabel"
         :size="$isLarge ? 'sm' : 'xs'"
         :variant="$isLarge ? 'secondary' : 'ghost'"
-        :aria-label="'Copy class code '.$code"
+        :aria-label="$copyLabel.' '.$code"
     />
 </div>

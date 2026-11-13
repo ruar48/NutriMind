@@ -9,6 +9,7 @@ use App\Services\Reports\Types\MissionProgressReport;
 use App\Services\Reports\Types\QuizResultsReport;
 use App\Services\Reports\Types\StudentPerformanceReport;
 use App\Services\Reports\Types\UserAccountsReport;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Facades\Gate;
 
@@ -25,7 +26,7 @@ class ReportBuilder
     /**
      * Build the report for the viewer with the validated filters.
      *
-     * @throws \Illuminate\Auth\Access\AuthorizationException when the viewer cannot generate the report (404 status).
+     * @throws AuthorizationException when the viewer cannot generate the report (404 status).
      */
     public function build(ReportType $type, User $viewer, ReportFilters $filters): Report
     {

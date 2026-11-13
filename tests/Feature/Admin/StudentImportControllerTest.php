@@ -6,8 +6,11 @@ use App\Models\Classroom;
 use App\Models\SchoolYear;
 use App\Models\User;
 use App\Services\StudentImport\PendingImports;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\MessageBag;
 use Illuminate\Support\Str;
+use Illuminate\Support\ViewErrorBag;
 use Tests\Feature\Services\StudentImport\Support\StudentImportCsv;
 
 describe('create', function () {
@@ -183,13 +186,18 @@ describe('store', function () {
     });
 
     it('shows every file problem on the form', function () {
-        $this->actingAs(User::factory()->admin()->create())
-            ->withViewErrors(['file' => ['The file is missing the grade_level column.', 'The file has no learner rows. Add one learner per row below the heading row.']])
-            ->get(route('admin.students.import.create'))
+        Storage::fake('local');
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin)
+            ->from(route('admin.students.import.create'))
+            ->post(route('admin.students.import.store'), ['file' => StudentImportCsv::upload("first_name,last_name\n")])
+            ->assertRedirectToRoute('admin.students.import.create');
+
+        $this->get(route('admin.students.import.create'))
             ->assertOk()
             ->assertSeeText('The file is missing the grade_level column.')
             ->assertSee('data-import-file-errors', false)
-            ->assertSeeText('The file has no learner rows.');
+            ->assertSeeText('The file has no learner rows. Add one learner per row below the heading row.');
     });
 
     it('sends guests to the sign-in page', function () {

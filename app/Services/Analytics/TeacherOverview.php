@@ -156,7 +156,7 @@ class TeacherOverview
     }
 
     /**
-     * Get the latest submitted attempts in the classrooms, with learner and quiz.
+     * Get the latest submitted attempts of active learner accounts in the classrooms, with learner and quiz.
      *
      * @param  list<int>  $classroomIds
      * @return Collection<int, QuizAttempt>
@@ -166,6 +166,7 @@ class TeacherOverview
         return QuizAttempt::query()
             ->submitted()
             ->whereIn('classroom_id', $classroomIds)
+            ->whereIn('student_id', User::query()->ofRole(UserRole::Student)->active()->select('users.id'))
             ->with(['student', 'quiz'])
             ->latest('submitted_at')
             ->orderByDesc('id')

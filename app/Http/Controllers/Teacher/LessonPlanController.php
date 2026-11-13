@@ -128,6 +128,7 @@ class LessonPlanController extends Controller
             'missions' => $missions,
             'suggestedMissionIds' => $missions
                 ->filter(fn (Mission $mission): bool => $options->isSuggestedModule($lessonPlan, $mission->module))
+                ->values()
                 ->modelKeys(),
             'aligned' => [
                 'activities' => $lessonPlan->activities()->pluck('learning_activities.id')->map(fn (mixed $id): int => (int) $id)->all(),

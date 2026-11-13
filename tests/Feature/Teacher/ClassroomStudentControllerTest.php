@@ -74,6 +74,34 @@ describe('create', function () {
             ->assertSeeText('No learners found');
     });
 
+    it('shows a refused enrollment above the search results it came from', function () {
+        $classroom = Classroom::factory()->create(['grade_level' => GradeLevel::Five]);
+        $older = User::factory()->student(GradeLevel::Six)->create(['name' => 'Miguel Navarro']);
+        User::factory()->student(GradeLevel::Five)->create(['name' => 'Sofia Navarro']);
+        $searchUrl = route('teacher.classrooms.students.create', [$classroom, 'search' => 'Navarro']);
+
+        $this->actingAs($classroom->teacher)
+            ->from($searchUrl)
+            ->followingRedirects()
+            ->post(route('teacher.classrooms.enrollments.store', $classroom), ['student_ids' => [$older->id]])
+            ->assertOk()
+            ->assertSee('data-enroll-error', false)
+            ->assertSeeText('Only active Grade 5 learners who are not in this class yet can be enrolled.')
+            ->assertSeeText('Sofia Navarro');
+    });
+
+    it('keeps the typed learner details and shows the errors after a refused account', function () {
+        $classroom = Classroom::factory()->create();
+
+        $this->actingAs($classroom->teacher)
+            ->from(route('teacher.classrooms.students.create', $classroom))
+            ->followingRedirects()
+            ->post(route('teacher.classrooms.students.store', $classroom), ['name' => 'Ana Reyes', 'lrn' => '123'])
+            ->assertOk()
+            ->assertSee('value="Ana Reyes"', false)
+            ->assertSeeText('The LRN must be exactly 12 digits.');
+    });
+
     it('refuses archived classrooms', function () {
         $classroom = Classroom::factory()->archived()->create();
 

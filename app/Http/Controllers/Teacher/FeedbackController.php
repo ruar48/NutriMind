@@ -63,6 +63,9 @@ class FeedbackController extends Controller
             'type' => $type,
             'student' => $student,
             'learnerIds' => $this->learnersOfTeacher($teacher, $feedback->getCollection()->pluck('student_id')->all()),
+            'attemptUrl' => fn (QuizAttempt $attempt): ?string => $teacher->can('viewResults', $attempt->quiz)
+                ? route('teacher.attempts.show', $attempt)
+                : null,
         ]);
     }
 

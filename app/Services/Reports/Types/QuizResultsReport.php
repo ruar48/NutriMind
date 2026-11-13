@@ -84,7 +84,7 @@ final class QuizResultsReport
             rows: $rows,
             notes: array_values(array_filter([
                 'Average score, pass rate, highest and lowest scores use each learner’s best attempt. Draft quizzes are not included.',
-                'Learners assigned counts the learners enrolled in the covered classrooms the quiz is assigned to.',
+                'Learners assigned counts the learners enrolled in the reported classrooms the quiz is assigned to.',
                 $scope->filters->hasPeriod() ? 'Only attempts submitted in the period are counted; quizzes without attempts in the period are left out.' : null,
             ])),
             breakdown: [

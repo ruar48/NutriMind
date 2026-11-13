@@ -78,7 +78,7 @@ final class StudentPerformanceReport
             rows: $rows,
             notes: array_values(array_filter([
                 'Average, highest and lowest scores use each learner’s best attempt per quiz. Quizzes passed counts the quizzes with a passing attempt.',
-                'Missions completed counts the learner’s missions in the subjects of the covered classrooms. Points and levels are the learner’s game totals.',
+                'Missions completed counts the learner’s missions in the subjects of the reported classrooms. Points and levels are the learner’s game totals.',
                 $scope->filters->hasPeriod() ? 'Only quiz attempts submitted and missions completed in the period are counted.' : null,
             ])),
             breakdown: [
@@ -173,7 +173,7 @@ final class StudentPerformanceReport
         $needsAttention = $rows->filter(fn (ReportRow $row): bool => $row->value('band') === PerformanceBand::DidNotMeetExpectations)->count();
 
         return [
-            ReportStat::count('Learners', $rows->count(), 'users', 'sky', 'Enrolled in the covered classrooms'),
+            ReportStat::count('Learners', $rows->count(), 'users', 'sky', 'Enrolled in the reported classrooms'),
             ReportStat::percent(
                 'Average score',
                 $averages->isEmpty() ? null : round($averages->avg(), 1),

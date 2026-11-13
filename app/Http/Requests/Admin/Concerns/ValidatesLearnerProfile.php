@@ -101,16 +101,19 @@ trait ValidatesLearnerProfile
     }
 
     /**
-     * Get the username rules: ASCII letters, digits, dashes and underscores, unique ignoring case.
+     * Get the username rules: ASCII letters, digits, dashes and underscores, unique ignoring case. An unchanged
+     * username of an existing learner keeps passing the format check, so older accounts can still be edited.
      *
      * @return list<mixed>
      */
     protected function usernameRules(bool $required, ?User $student = null): array
     {
+        $isUnchanged = $student !== null && $this->input('username') === $student->username;
+
         return [
             $required ? 'required' : 'nullable',
             'string',
-            'alpha_dash:ascii',
+            Rule::when(! $isUnchanged, ['alpha_dash:ascii']),
             'max:30',
             $this->uniqueAccountIdentifier('username', $student),
         ];

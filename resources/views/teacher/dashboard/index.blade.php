@@ -38,7 +38,7 @@
 
     @unless ($hasSubjects)
         <x-alert variant="warning" title="No subject assigned yet">
-            {{ \App\Policies\Concerns\AuthorizesAccess::NO_SUBJECT_MESSAGE }}
+            {{ \App\Policies\ClassroomPolicy::NO_SUBJECT_MESSAGE }}
         </x-alert>
     @endunless
 

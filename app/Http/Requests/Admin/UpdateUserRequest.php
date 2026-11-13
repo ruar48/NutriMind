@@ -5,6 +5,7 @@ namespace App\Http\Requests\Admin;
 use App\Http\Requests\Admin\Concerns\ValidatesAccountIdentifiers;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateUserRequest extends FormRequest
 {
@@ -27,7 +28,8 @@ class UpdateUserRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request. The role cannot change after an account is created.
+     * Get the validation rules that apply to the request. The role cannot change after an account is created, and an
+     * unchanged username keeps passing the format check so older accounts can still be edited.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
@@ -38,7 +40,13 @@ class UpdateUserRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', $this->uniqueAccountIdentifier('email', $user)],
-            'username' => ['nullable', 'string', 'alpha_dash:ascii', 'max:30', $this->uniqueAccountIdentifier('username', $user)],
+            'username' => [
+                'nullable',
+                'string',
+                Rule::when($this->input('username') !== $user->username, ['alpha_dash:ascii']),
+                'max:30',
+                $this->uniqueAccountIdentifier('username', $user),
+            ],
             'phone' => ['nullable', 'string', 'max:30'],
         ];
     }

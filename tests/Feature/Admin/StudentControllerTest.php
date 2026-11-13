@@ -95,7 +95,7 @@ describe('index', function () use ($classrooms, $otherRoles) {
         ['sampaguita' => $sampaguita, 'narra' => $narra] = $classrooms();
         $learners = User::factory()->student(GradeLevel::Five)->enrolledIn($sampaguita)->count(4)->create();
         User::factory()->student(GradeLevel::Six)->enrolledIn($narra)->count(3)->create();
-        User::factory()->student()->inactive()->create();
+        User::factory()->student()->inactive()->create()->studentProfile->forceFill(['last_active_at' => null, 'last_synced_at' => null])->save();
         User::factory()->parent()->guardianOf($learners[0])->create();
 
         $this->actingAs(User::factory()->admin()->create())
@@ -405,16 +405,18 @@ describe('edit', function () use ($classrooms, $otherRoles) {
         ['sampaguita' => $sampaguita, 'ilangIlang' => $ilangIlang] = $classrooms();
         $learner = User::factory()->student(GradeLevel::Five)->enrolledIn($sampaguita)->create(['username' => 'sofia_navarro']);
 
-        $this->actingAs(User::factory()->admin()->create())
-            ->get(route('admin.students.edit', $learner))
-            ->assertOk()
+        $response = $this->actingAs(User::factory()->admin()->create())
+            ->get(route('admin.students.edit', $learner));
+
+        $response->assertOk()
             ->assertViewIs('admin.students.edit')
             ->assertViewHas('enrolledClassroomIds', [$sampaguita->id])
             ->assertSee('value="sofia_navarro"', false)
             ->assertSee('action="'.route('admin.students.update', $learner).'"', false)
-            ->assertSee('action="'.route('admin.users.password.update', $learner).'"', false)
-            ->assertMatchesRegularExpression('#<input[^>]*value="'.$sampaguita->id.'"[^>]*\schecked(?=[\s/>])#')
-            ->assertDoesntMatchRegularExpression('#<input[^>]*value="'.$ilangIlang->id.'"[^>]*\schecked(?=[\s/>])#');
+            ->assertSee('action="'.route('admin.users.password.update', $learner).'"', false);
+        expect($response->getContent())
+            ->toMatch('#<input[^>]*name="classroom_ids\[\]"[^>]*value="'.$sampaguita->id.'"[^>]*\schecked(?=[\s/>])#')
+            ->not->toMatch('#<input[^>]*name="classroom_ids\[\]"[^>]*value="'.$ilangIlang->id.'"[^>]*\schecked(?=[\s/>])#');
     });
 
     it('reports accounts that are not learners as missing', function () {
@@ -547,6 +549,18 @@ describe('update', function () use ($classrooms, $otherRoles) {
         expect($learner->enrolledClassrooms()->exists())->toBeFalse();
     });
 
+    it('keeps an older username that does not follow the format while it stays unchanged', function () use ($payload) {
+        $learner = User::factory()->student()->create(['username' => 'sofia.navarro']);
+
+        $this->actingAs(User::factory()->admin()->create())
+            ->put(route('admin.students.update', $learner), $payload($learner, ['name' => 'Sofia Navarro']))
+            ->assertSessionHasNoErrors();
+
+        $this->actingAs(User::factory()->admin()->create())
+            ->put(route('admin.students.update', $learner), $payload($learner, ['username' => 'sofia.n']))
+            ->assertSessionHasErrors(['username' => 'The username field must only contain letters, numbers, dashes, and underscores.']);
+    });
+
     it('keeps the learner’s own LRN and username, even in another case', function () use ($payload) {
         $learner = User::factory()->student()->create(['username' => 'sofia_navarro']);
         $learner->studentProfile->update(['lrn' => '136742210001']);
@@ -579,7 +593,7 @@ describe('update', function () use ($classrooms, $otherRoles) {
             ->put(route('admin.students.update', $learner), ['name' => $learner->name, 'username' => 'no_profile', 'grade_level' => '6'])
             ->assertSessionHasNoErrors();
 
-        expect(StudentProfile::query()->where('user_id', $learner->id)->value('grade_level'))->toBe(6);
+        expect(StudentProfile::query()->where('user_id', $learner->id)->firstOrFail()->grade_level)->toBe(GradeLevel::Six);
     });
 
     it('reports accounts that are not learners as missing', function () {

@@ -20,7 +20,7 @@
             :description="$type->description()"
             :icon="$type->icon()"
             :color="$type->color()"
-            class="flex flex-col"
+            class="flex flex-col [&>:last-child]:mt-auto"
             data-report-card="{{ $type->value }}"
             data-animate
             style="--stagger: {{ $loop->iteration }}"
