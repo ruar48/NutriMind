@@ -17,7 +17,10 @@ return new class extends Migration
             $table->foreignId('learning_activity_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
 
-            $table->unique(['lesson_plan_id', 'learning_activity_id']);
+            $table->unique(
+                ['lesson_plan_id', 'learning_activity_id'],
+                'learning_activity_lesson_plan_unique'
+            );
         });
     }
 
