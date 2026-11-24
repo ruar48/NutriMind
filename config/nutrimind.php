@@ -62,4 +62,23 @@ return [
         'max_kb' => 2048,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Unity Game Sync
+    |--------------------------------------------------------------------------
+    |
+    | The shape of the Unity game's missions, used to check and score the
+    | progress the game uploads: every mission has this many checkpoints of
+    | this many questions, and each correct checkpoint answer is worth the
+    | given points (the game's GameConfig.pointsPerCorrectAnswer). A mission's
+    | final challenge is worth the mission's own "reward points".
+    |
+    */
+
+    'game' => [
+        'checkpoints_per_mission' => 3,
+        'questions_per_checkpoint' => 5,
+        'points_per_correct_answer' => 10,
+    ],
+
 ];

@@ -183,6 +183,45 @@ class Quiz extends Model
      *
      * @param  Builder<Quiz>  $query
      */
+    /**
+     * Scope the query to the quizzes the learner may take in the game: published quizzes assigned to a classroom
+     * the learner is enrolled in, that is not archived and whose assignment has opened (no "available from" date,
+     * or one that has passed).
+     */
+    #[Scope]
+    protected function availableTo(Builder $query, User $student): void
+    {
+        $query->where($query->qualifyColumn('status'), QuizStatus::Published)
+            ->whereHas('classrooms', fn (Builder $classrooms) => self::constrainToOpenAssignments($classrooms, $student));
+    }
+
+    /**
+     * Get the classrooms through which the learner may take the quiz (see availableTo), earliest due date first.
+     *
+     * @return BelongsToMany<Classroom, $this, ClassroomQuiz>
+     */
+    public function classroomsOpenTo(User $student): BelongsToMany
+    {
+        $classrooms = $this->classrooms();
+        self::constrainToOpenAssignments($classrooms->getQuery(), $student);
+
+        return $classrooms->orderByRaw('classroom_quiz.due_at is null')->orderBy('classroom_quiz.due_at')->orderBy('classrooms.id');
+    }
+
+    /**
+     * Limit a classroom query joined to classroom_quiz to the learner's open assignments.
+     *
+     * @param  Builder<Classroom>  $classrooms
+     */
+    public static function constrainToOpenAssignments(Builder $classrooms, User $student): void
+    {
+        $classrooms->whereNull('classrooms.archived_at')
+            ->where(fn (Builder $opened) => $opened
+                ->whereNull('classroom_quiz.available_from')
+                ->orWhere('classroom_quiz.available_from', '<=', now()))
+            ->whereHas('students', fn (Builder $students) => $students->whereKey($student->getKey()));
+    }
+
     #[Scope]
     protected function ofStatus(Builder $query, QuizStatus $status): void
     {

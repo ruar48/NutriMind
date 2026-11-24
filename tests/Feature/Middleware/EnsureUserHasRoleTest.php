@@ -130,3 +130,16 @@ it('signs out a deactivated user before checking the role of the area', function
 
     $this->assertGuest();
 })->with(['/admin', '/teacher/quizzes', '/forum', '/account']);
+
+it('revokes the API tokens of a deactivated learner instead of ending a session', function () {
+    $student = User::factory()->student()->inactive()->create();
+    $token = $student->createToken('Tablet')->plainTextToken;
+    $student->createToken('Phone');
+
+    $this->withToken($token)
+        ->getJson(route('game.profile'))
+        ->assertForbidden()
+        ->assertJson(['message' => 'Your account has been deactivated. Please contact the school administrator.']);
+
+    expect($student->tokens()->count())->toBe(0);
+});

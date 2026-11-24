@@ -219,6 +219,26 @@ describe('store', function () {
             ->grade_level->toBe(GradeLevel::Five);
     });
 
+    it('links the mission to the game mission with the same ID', function () {
+        $subject = Subject::factory()->create();
+
+        $this->actingAs(User::factory()->admin()->create())
+            ->post(route('admin.missions.store'), missionPayload($subject, ['game_key' => 'G5-ENG-M1']))
+            ->assertSessionHasNoErrors();
+
+        expect(Mission::query()->sole()->game_key)->toBe('G5-ENG-M1');
+    });
+
+    it('rejects a game mission ID another mission uses', function () {
+        Mission::factory()->create(['game_key' => 'G5-ENG-M1']);
+
+        $this->actingAs(User::factory()->admin()->create())
+            ->post(route('admin.missions.store'), missionPayload(Subject::factory()->create(), ['game_key' => 'G5-ENG-M1']))
+            ->assertSessionHasErrors(['game_key' => 'Another mission already uses this game mission ID.']);
+
+        expect(Mission::query()->count())->toBe(1);
+    });
+
     it('accepts a one-day mission and open dates', function (array $dates) {
         $subject = Subject::factory()->create();
 
@@ -272,6 +292,7 @@ describe('store', function () {
         'ends before it starts' => [['starts_on' => '2026-11-16', 'ends_on' => '2026-11-15'], 'ends_on', 'The end date must be on or after the start date.'],
         'order too high' => [['sort_order' => 1000], 'sort_order', 'The display order field must be between 0 and 999.'],
         'not a boolean' => [['is_active' => 'sometimes'], 'is_active', 'The active setting field must be true or false.'],
+        'not a game mission ID' => [['game_key' => 'mission one'], 'game_key', 'Use the game\'s mission ID, like G5-ENG-M1.'],
     ]);
 
     it('rejects an inactive subject', function () {
@@ -339,6 +360,16 @@ describe('update', function () {
             ->assertSessionHasNoErrors();
 
         expect($mission->refresh()->subject_id)->toBe($subject->id);
+    });
+
+    it('lets the mission keep its own game mission ID', function () {
+        $mission = Mission::factory()->create(['game_key' => 'G6-SCI-M2']);
+
+        $this->actingAs(User::factory()->admin()->create())
+            ->put(route('admin.missions.update', $mission), missionPayload($mission->subject, ['game_key' => 'G6-SCI-M2']))
+            ->assertSessionHasNoErrors();
+
+        expect($mission->refresh()->game_key)->toBe('G6-SCI-M2');
     });
 
     it('validates the update', function () {

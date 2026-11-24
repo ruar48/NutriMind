@@ -33,6 +33,7 @@ class StoreMissionRequest extends FormRequest
             'subject_id' => ['required', 'integer', $this->subjectRule()],
             'learning_module_id' => ['nullable', 'integer', Rule::exists('learning_modules', 'id')->where('subject_id', $this->integer('subject_id'))],
             'grade_level' => ['nullable', Rule::enum(GradeLevel::class)],
+            'game_key' => ['nullable', 'string', 'max:40', 'regex:/^G\d{1,2}-[A-Z]{2,10}-M\d{1,3}$/', Rule::unique('missions', 'game_key')->ignore($this->route('mission'))],
             'title' => ['required', 'string', 'max:150'],
             'description' => ['required', 'string', 'max:2000'],
             'objective' => ['required', 'string', 'max:255'],
@@ -81,6 +82,7 @@ class StoreMissionRequest extends FormRequest
         return [
             'subject_id' => 'subject',
             'learning_module_id' => 'learning module',
+            'game_key' => 'game mission ID',
             'grade_level' => 'grade level',
             'type' => 'mission type',
             'points_reward' => 'reward points',
@@ -101,6 +103,8 @@ class StoreMissionRequest extends FormRequest
         return [
             'subject_id.exists' => 'Choose an active subject.',
             'learning_module_id.exists' => 'Choose a module of the mission\'s subject.',
+            'game_key.regex' => 'Use the game\'s mission ID, like G5-ENG-M1.',
+            'game_key.unique' => 'Another mission already uses this game mission ID.',
             'ends_on.after_or_equal' => 'The end date must be on or after the start date.',
         ];
     }

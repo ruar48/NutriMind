@@ -12,7 +12,8 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Restrict a route to users with one of the given roles (`role:admin` or `role:admin,teacher,parent`).
  *
- * A deactivated account is signed out on its next request, whatever its role.
+ * A deactivated account is signed out on its next request, whatever its role. A token request (the game's API)
+ * has no session to end, so the account's API tokens are revoked and the request gets 403 instead.
  */
 class EnsureUserHasRole
 {
@@ -34,6 +35,12 @@ class EnsureUserHasRole
 
         if ($user === null) {
             throw new AuthenticationException;
+        }
+
+        if (! $user->is_active && ! $request->hasSession()) {
+            $user->tokens()->delete();
+
+            abort(Response::HTTP_FORBIDDEN, self::DEACTIVATED_MESSAGE);
         }
 
         if (! $user->is_active) {

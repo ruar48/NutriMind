@@ -45,6 +45,7 @@
             >
                 <x-content.module-options :modules="$modules" :selected="old('learning_module_id', $mission->learning_module_id)" />
             </x-form.select>
+            <x-form.input name="game_key" label="Game mission ID" :value="$mission->game_key" maxlength="40" prefix-icon="gamepad-2" placeholder="e.g. G5-ENG-M1" hint="The mission’s ID inside the Unity game. Progress from the game reaches this mission only when it is set." optional class="col-span-full" />
         </x-form.section>
 
         <x-form.section title="Reward and schedule" description="Points are added to the learner’s XP when they complete the mission." columns="2">

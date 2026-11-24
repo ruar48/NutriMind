@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['subject_id', 'learning_module_id', 'grade_level', 'title', 'description', 'objective', 'type', 'difficulty', 'points_reward', 'starts_on', 'ends_on', 'sort_order', 'is_active'])]
+#[Fillable(['subject_id', 'learning_module_id', 'game_key', 'grade_level', 'title', 'description', 'objective', 'type', 'difficulty', 'points_reward', 'starts_on', 'ends_on', 'sort_order', 'is_active'])]
 class Mission extends Model
 {
     /** @use HasFactory<MissionFactory> */
