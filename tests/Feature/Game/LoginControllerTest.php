@@ -38,6 +38,37 @@ describe('store', function () {
             ->assertJsonPath('data.id', $student->id);
     });
 
+    it('signs a learner in with their LRN, ignoring spaces and dashes', function (string $typedLrn) {
+        $student = User::factory()->student()->create(['username' => 'jdelacruz']);
+        $student->studentProfile->forceFill(['lrn' => '123456789012'])->save();
+
+        $this->postJson(route('game.login'), ['username' => $typedLrn, 'password' => 'password'])
+            ->assertOk()
+            ->assertJsonPath('data.id', $student->id);
+    })->with(['123456789012', '1234-5678-9012', ' 1234 5678 9012 ']);
+
+    it('rejects an LRN with the wrong password with 422', function () {
+        $student = User::factory()->student()->create();
+        $student->studentProfile->forceFill(['lrn' => '123456789012'])->save();
+
+        $this->postJson(route('game.login'), ['username' => '123456789012', 'password' => 'wrong-password'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['username' => 'These credentials do not match our records.']);
+    });
+
+    it('counts failed tries of the same LRN together however it is typed', function () {
+        $student = User::factory()->student()->create();
+        $student->studentProfile->forceFill(['lrn' => '123456789012'])->save();
+
+        foreach (['123456789012', '1234-5678-9012', '1234 5678 9012', '12-3456789012', '123456-789012'] as $typedLrn) {
+            $this->postJson(route('game.login'), ['username' => $typedLrn, 'password' => 'wrong-password']);
+        }
+
+        $this->postJson(route('game.login'), ['username' => '1234-5678-9012', 'password' => 'password'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['username' => 'Too many login attempts.']);
+    });
+
     it('names the token after the game when the device sends no name', function () {
         $student = User::factory()->student()->create(['username' => 'jdelacruz']);
 
@@ -79,7 +110,7 @@ describe('store', function () {
         $this->postJson(route('game.login'), [])
             ->assertUnprocessable()
             ->assertJsonValidationErrors([
-                'username' => 'The username field is required.',
+                'username' => 'The username or LRN field is required.',
                 'password' => 'The password field is required.',
             ]);
     });

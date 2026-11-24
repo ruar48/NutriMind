@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\LoginRequest as PortalLoginRequest;
 use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
@@ -14,7 +15,10 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Validates the game's sign-in: a learner's username and password, the credentials teachers hand out.
+ * Validates the game's sign-in: a learner's username or LRN, and password.
+ *
+ * The "username" field takes either the username teachers hand out (any letter case) or the learner's 12-digit
+ * LRN; spaces and dashes in an LRN are ignored ("1234-5678-9012" works), like on the web forms.
  *
  * Only learner accounts may sign in; any other account gets the same "credentials do not match" answer as a wrong
  * password, so the game never reveals that a staff or parent username exists. Like the web portals, five failed
@@ -45,6 +49,18 @@ class LoginRequest extends FormRequest
     }
 
     /**
+     * Get the field names used in validation messages.
+     *
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'username' => 'username or LRN',
+        ];
+    }
+
+    /**
      * Find the active learner the credentials belong to.
      *
      * @throws ValidationException
@@ -53,9 +69,18 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
+        $username = Str::lower(trim($this->string('username')->toString()));
+        $lrn = $this->lrn();
+
         $student = User::query()
             ->where('role', UserRole::Student)
-            ->whereRaw('lower(username) = ?', [Str::lower(trim($this->string('username')->toString()))])
+            ->where(function (Builder $query) use ($username, $lrn): void {
+                $query->whereRaw('lower(username) = ?', [$username]);
+
+                if ($lrn !== null) {
+                    $query->orWhereHas('studentProfile', fn (Builder $profile) => $profile->where('lrn', $lrn));
+                }
+            })
             ->first();
 
         if ($student === null || ! Hash::check($this->string('password')->toString(), $student->password)) {
@@ -109,6 +134,18 @@ class LoginRequest extends FormRequest
      */
     private function throttleKey(): string
     {
-        return 'game|'.Str::transliterate(Str::lower($this->string('username')->toString()).'|'.$this->ip());
+        $identifier = $this->lrn() ?? Str::lower(trim($this->string('username')->toString()));
+
+        return 'game|'.Str::transliterate($identifier.'|'.$this->ip());
+    }
+
+    /**
+     * Get the LRN the learner typed, without spaces or dashes, or null when the input is not 12 digits.
+     */
+    private function lrn(): ?string
+    {
+        $digits = preg_replace('/[\s-]+/', '', trim($this->string('username')->toString()));
+
+        return preg_match('/^\d{12}$/', $digits) === 1 ? $digits : null;
     }
 }
