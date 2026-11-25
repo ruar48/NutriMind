@@ -66,16 +66,6 @@ final class QuizCatalog
                 self::quiz('Body Systems Quiz', ['S6LT-IIa-1'], -21, 'published', 9, minutes: 15),
                 self::quiz('Gulayan Garden Quiz', ['S6LT-IIg-3'], -3, 'published', 9, minutes: 15),
             ]),
-            self::group('bautista', 'EPP-HE', 5, ['Sampaguita'], [
-                self::quiz('Kitchen Safety Quiz', ['EPP5HE-Ia-1'], -45, 'closed', 8, minutes: 15),
-                self::quiz('Breakfast Basics Quiz', ['EPP5HE-IIb-3'], -24, 'published', 8, minutes: 15, showAnswers: false),
-                self::quiz('Healthy Baon Quiz', ['EPP5HE-IId-4'], 3, 'published', 8, minutes: 15),
-            ]),
-            self::group('bautista', 'EPP-HE', 6, ['Narra'], [
-                self::quiz('Family Meal Planning Quiz', ['EPP6HE-Ia-1'], -40, 'closed', 8, minutes: 15),
-                self::quiz('Smart Shopping Quiz', ['EPP6HE-IIb-2'], -17, 'published', 8, minutes: 15),
-                self::quiz('Healthy Cooking Quiz', ['EPP6HE-IIe-4'], 12, 'draft', 8, minutes: 15, reviewed: false),
-            ]),
             self::group('mendoza', 'PE', 5, ['Sampaguita', 'Ilang-Ilang'], [
                 self::quiz('Energy Balance Quiz', ['PE5PF-Ib-1'], -38, 'closed', 8, minutes: 10, passing: 70),
                 self::quiz('Active Play Quiz', ['PE5PF-IIa-2'], -10, 'published', 8, minutes: 10, passing: 70),
@@ -97,11 +87,6 @@ final class QuizCatalog
                 self::quiz('Balanced Plate Quiz', ['H5N-Ic-2'], -31, 'closed', 10, attempts: 3),
                 self::quiz('Healthy Snacks Quiz', ['H5N-IIa-1'], -14, 'published', 10, attempts: 3),
                 self::quiz('Water and Healthy Drinks Quiz', ['H5N-IIc-3'], 2, 'published', 10, attempts: 3),
-            ]),
-            self::group('fernandez', 'EPP-HE', 6, ['Molave'], [
-                self::quiz('Meal Planning Basics', ['EPP6HE-Ia-1'], -37, 'closed', 8, minutes: 15),
-                self::quiz('Market Smarts Quiz', ['EPP6HE-IIb-2'], -16, 'published', 8, minutes: 15),
-                self::quiz('Cooking Safely Quiz', ['EPP6HE-IIe-4'], 10, 'published', 8, minutes: 15),
             ]),
             self::group('fernandez', 'HEALTH', 6, ['Mahogany'], [
                 self::quiz('Vitamins and Minerals Quiz', ['H6N-Ia-1'], -48, 'closed', 10, attempts: 3),

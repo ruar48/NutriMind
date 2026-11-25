@@ -79,7 +79,7 @@ final class ForumCatalog
                 "From November 9 to 20, we are celebrating Healthy Baon Week! Pack a baon with Go, Grow and Glow foods and a bottle of water.\n\nLearners can also complete the Healthy Baon Week Challenge in NutriMind to earn bonus points. Share your best baon ideas in the Healthy Baon Ideas category!",
                 9.2, replies: [
                     self::reply('parent', 3, 'Great idea! My son wants to try the challenge. Is there a list of suggested baon?'),
-                    self::reply('teacher:bautista', 5, 'The Healthy Baon Packing world in NutriMind has a planner your child can use. Simple combinations like rice, chicken adobo, steamed sayote and a banana are perfect.'),
+                    self::reply('teacher:bautista', 5, 'The Pinggang Pinoy Plate Builder world in NutriMind helps your child plan a balanced meal. Simple combinations like rice, chicken adobo, steamed sayote and a banana are perfect.'),
                     self::reply('parent', 8, "Thank you, Ma'am Rowena! We will try that this week."),
                     self::reply('demo-parent', 100, 'Sofia packed her own baon today using the planner: rice, tortang talong and a slice of papaya. Proud nanay here!'),
                     self::reply('parent', 120, 'Love this initiative. The kids are reminding each other to bring their water bottles.'),
@@ -147,7 +147,7 @@ final class ForumCatalog
                     self::reply('parent', 2, 'Try adding vegetables slowly: finely chopped malunggay in sopas or grated carrots in giniling. Then make them more visible little by little.'),
                     self::reply('parent', 4, 'Let him choose one new vegetable at the palengke each week and cook it together.'),
                     self::reply('parent', 6, "If your kid only eats fried chicken, that's your fault as a parent. Just don't feed him until he eats his vegetables.", status: 'hidden', key: 'rude'),
-                    self::reply('teacher:bautista', 9, 'Involving children in cooking really helps. In EPP we teach simple dishes like ginisang sayote and pinakbet, and learners are proud to eat what they cooked.'),
+                    self::reply('teacher:bautista', 9, 'Involving children in cooking really helps. At school we talk about simple dishes like ginisang sayote and pinakbet, and learners are proud to eat what they cooked.'),
                     self::reply('parent', 18, "We play the 'rainbow plate' game at dinner: whoever has the most colors on their plate wins."),
                     self::reply('author', 22, "These are great ideas, thank you! We'll try the palengke challenge this Saturday."),
                     self::reply('parent', 40, 'Also, be patient. Kids sometimes need to taste a new food many times before they like it.'),

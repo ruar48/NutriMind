@@ -10,8 +10,8 @@ use Database\Seeders\Support\Catalog\SchoolCatalog;
 it('gives every subject and grade two to four learning modules with unique competency codes', function () {
     $modules = collect(ContentCatalog::modules());
 
-    expect($modules)->toHaveCount(24);
-    expect($modules->pluck('code')->unique())->toHaveCount(24);
+    expect($modules)->toHaveCount(18);
+    expect($modules->pluck('code')->unique())->toHaveCount(18);
 
     foreach (array_keys(SchoolCatalog::subjects()) as $subject) {
         foreach ([5, 6] as $grade) {
@@ -24,7 +24,7 @@ it('places the modules in quarters with the 3rd Quarter mostly still ahead', fun
     $quarters = collect(ContentCatalog::modules())->countBy('quarter')->all();
     $unpublished = collect(ContentCatalog::modules())->where('published', false);
 
-    expect($quarters)->toBe([1 => 10, 2 => 12, 3 => 2]);
+    expect($quarters)->toBe([1 => 8, 2 => 8, 3 => 2]);
     expect($unpublished->pluck('code')->all())->toBe(['H6N-IIIa-1']);
 });
 
@@ -35,7 +35,7 @@ it('gives every module three to six activities and uses every activity type', fu
         expect(count($module['activities']))->toBeGreaterThanOrEqual(3)->toBeLessThanOrEqual(6);
     }
 
-    expect($activities)->toHaveCount(99);
+    expect($activities)->toHaveCount(74);
     expect($activities->pluck('type')->unique()->sort()->values()->all())
         ->toBe(collect(ActivityType::cases())->pluck('value')->sort()->values()->all());
     expect(array_keys(ContentCatalog::ACTIVITY_POINTS))->toEqualCanonicalizing(collect(ActivityType::cases())->pluck('value')->all());
@@ -57,8 +57,8 @@ it('links story missions to modules of the same subject and grade', function () 
 it('has about two dozen missions of every type and difficulty, some dated, retired or upcoming', function () {
     $missions = collect(ContentCatalog::missions());
 
-    expect($missions)->toHaveCount(25);
-    expect($missions->pluck('title')->unique())->toHaveCount(25);
+    expect($missions)->toHaveCount(21);
+    expect($missions->pluck('title')->unique())->toHaveCount(21);
     expect($missions->pluck('type')->unique()->sort()->values()->all())->toBe(collect(MissionType::cases())->pluck('value')->sort()->values()->all());
     expect($missions->pluck('difficulty')->unique()->sort()->values()->all())->toBe(collect(Difficulty::cases())->pluck('value')->sort()->values()->all());
     expect($missions->where('active', false)->pluck('title')->all())->toBe(['Nutrition Month 2026 Challenge', 'Sports Fest Fitness Quest']);

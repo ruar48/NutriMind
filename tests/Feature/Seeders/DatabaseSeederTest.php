@@ -134,14 +134,14 @@ it('runs the 2026–2027 school year in its 2nd Quarter and keeps last year for 
     }
 });
 
-it('assigns one or two subjects to every working teacher except the newly hired one', function () {
+it('assigns one or two subjects to every working teacher except the two without classrooms', function () {
     $this->seed();
 
     $admin = User::query()->ofRole(UserRole::Admin)->sole();
     $teachers = User::query()->ofRole(UserRole::Teacher)->active()->withCount('assignedSubjects')->get()->keyBy('email');
 
     expect($teachers['teacher@nutrimind.test']->assignedSubjects()->pluck('code')->sort()->values()->all())->toBe(['HEALTH', 'SCIENCE']);
-    expect($teachers->where('assigned_subjects_count', 0)->keys()->all())->toBe(['dennis.aquino@nutrimind.test']);
+    expect($teachers->where('assigned_subjects_count', 0)->keys()->sort()->values()->all())->toBe(['dennis.aquino@nutrimind.test', 'rowena.bautista@nutrimind.test']);
     expect($teachers->max('assigned_subjects_count'))->toBe(2);
     expect(DB::table('subject_teacher')->where('assigned_by', '!=', $admin->id)->count())->toBe(0);
 });
@@ -153,7 +153,7 @@ it('enrolls every learner in every classroom of exactly one section of their gra
     $classrooms = Classroom::query()->active()->whereBelongsTo($activeYear)->with('teacher')->get();
     $learners = User::query()->ofRole(UserRole::Student)->with(['studentProfile', 'enrolledClassrooms'])->get();
 
-    expect($classrooms)->toHaveCount(17);
+    expect($classrooms)->toHaveCount(14);
 
     foreach ($classrooms as $classroom) {
         expect(Classroom::query()->accessibleBy($classroom->teacher)->whereKey($classroom)->exists())->toBeTrue();
@@ -197,7 +197,7 @@ it('publishes the game content: modules with activities, missions and rewards', 
 
     $modules = LearningModule::query()->withCount('activities')->get();
 
-    expect($modules)->toHaveCount(24);
+    expect($modules)->toHaveCount(18);
     expect($modules->where('is_published', false)->pluck('competency_code')->all())->toBe(['H6N-IIIa-1']);
     expect($modules->every(fn (LearningModule $module): bool => $module->activities_count >= 3 && $module->activities_count <= 6))->toBeTrue();
     expect(LearningActivity::query()->count())->toBe(99);
@@ -218,9 +218,9 @@ it('fills the question bank with answerable items whose usage matches their quiz
 
     $items = QuestionBankItem::query()->with(['teacher.assignedSubjects', 'quizQuestions'])->get();
 
-    expect($items)->toHaveCount(80);
-    expect($items->whereNotNull('reviewed_at'))->toHaveCount(73);
-    expect($items->where('is_shared', true))->toHaveCount(46);
+    expect($items)->toHaveCount(64);
+    expect($items->whereNotNull('reviewed_at'))->toHaveCount(58);
+    expect($items->where('is_shared', true))->toHaveCount(37);
 
     foreach ($items as $item) {
         expect($item->teacher->teachesSubject($item->subject_id))->toBeTrue();
@@ -265,7 +265,7 @@ it('assigns three to five quizzes of eight to twelve questions to every active c
         }
     }
 
-    expect($quizzes->countBy(fn (Quiz $quiz): string => $quiz->status->value)->sortKeys()->all())->toBe(['closed' => 16, 'draft' => 5, 'published' => 30]);
+    expect($quizzes->countBy(fn (Quiz $quiz): string => $quiz->status->value)->sortKeys()->all())->toBe(['closed' => 13, 'draft' => 4, 'published' => 25]);
     expect($quizzes->where('status', '!=', QuizStatus::Draft)->whereNull('academic_term_id'))->toBeEmpty();
     expect(DB::table('quiz_questions')->whereNotNull('question_bank_item_id')->count() / DB::table('quiz_questions')->count())->toBeGreaterThan(0.8);
 });
@@ -474,7 +474,7 @@ it('writes weekly lesson plans with every content coverage status represented', 
     $moduleCodes = LearningModule::query()->withCount(['activities' => fn ($query) => $query->published()])->get()->keyBy('competency_code');
     $today = now()->toDateString();
 
-    expect($plans)->toHaveCount(40);
+    expect($plans)->toHaveCount(33);
 
     foreach ($plans as $plan) {
         $expectedStatus = match (true) {

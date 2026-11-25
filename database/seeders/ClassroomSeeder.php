@@ -28,7 +28,6 @@ class ClassroomSeeder extends Seeder
     private const TOPICS = [
         'HEALTH' => [5 => 'Go, Grow and Glow foods, Pinggang Pinoy, healthy snacks and hydration', 6 => 'vitamins and minerals, food labels, nutritional disorders and food safety'],
         'SCIENCE' => [5 => 'the plants we eat, the digestive system and food preservation', 6 => 'food chains, body systems and the school vegetable garden'],
-        'EPP-HE' => [5 => 'kitchen safety, healthy breakfasts and baon packing', 6 => 'family meal planning, smart shopping and healthy cooking'],
         'PE' => [5 => 'energy balance and active play through Filipino games', 6 => 'fitness, food as fuel and an active lifestyle plan'],
     ];
 

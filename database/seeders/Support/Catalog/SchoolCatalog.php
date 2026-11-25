@@ -102,13 +102,6 @@ final class SchoolCatalog
                 'color' => 'teal',
                 'icon' => 'leaf',
             ],
-            'EPP-HE' => [
-                'name' => 'EPP – Home Economics',
-                'short_name' => 'EPP-HE',
-                'description' => 'Edukasyong Pantahanan at Pangkabuhayan: kitchen safety, healthy breakfast and baon, meal planning, smart shopping and simple cooking.',
-                'color' => 'carrot',
-                'icon' => 'utensils',
-            ],
             'PE' => [
                 'name' => 'Physical Education',
                 'short_name' => 'PE',

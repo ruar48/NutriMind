@@ -9,8 +9,8 @@ use Illuminate\Support\Str;
 it('has about eighty bank questions plus questions teachers wrote directly in quizzes', function () {
     $questions = collect(QuestionCatalog::all());
 
-    expect($questions->where('bank', true))->toHaveCount(80);
-    expect($questions->where('bank', false))->toHaveCount(28);
+    expect($questions->where('bank', true))->toHaveCount(64);
+    expect($questions->where('bank', false))->toHaveCount(23);
 });
 
 it('gives every question a unique prompt and an explanation', function () {
@@ -24,9 +24,9 @@ it('mixes question types and difficulties, mostly reviewed and many shared', fun
     $bank = collect(QuestionCatalog::all())->where('bank', true);
 
     expect($bank->pluck('type')->unique()->values()->all())->toEqualCanonicalizing(QuestionType::cases());
-    expect($bank->countBy('difficulty')->all())->toBe(['easy' => 26, 'medium' => 46, 'hard' => 8]);
-    expect($bank->where('reviewed', true))->toHaveCount(73);
-    expect($bank->where('shared', true))->toHaveCount(46);
+    expect($bank->countBy('difficulty')->all())->toBe(['easy' => 21, 'medium' => 35, 'hard' => 8]);
+    expect($bank->where('reviewed', true))->toHaveCount(58);
+    expect($bank->where('shared', true))->toHaveCount(37);
     expect(collect(QuestionCatalog::all())->where('bank', false)->where('shared', true))->toBeEmpty();
 });
 

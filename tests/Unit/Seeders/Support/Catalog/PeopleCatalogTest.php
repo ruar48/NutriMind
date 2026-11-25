@@ -36,7 +36,7 @@ it('opens classrooms for two to four subjects in every section, each taught by a
     $classrooms = collect(PeopleCatalog::classrooms());
     $teachers = PeopleCatalog::teachers();
 
-    expect($classrooms)->toHaveCount(17);
+    expect($classrooms)->toHaveCount(14);
 
     foreach (array_keys(PeopleCatalog::SECTIONS) as $section) {
         $subjects = $classrooms->where('section', $section)->pluck('subject');
@@ -52,12 +52,12 @@ it('opens classrooms for two to four subjects in every section, each taught by a
     expect($classrooms->pluck('mode')->unique())->toHaveCount(3);
 });
 
-it('assigns one or two subjects to each working teacher and leaves one new teacher without subjects', function () {
+it('assigns one or two subjects to each working teacher and leaves two teachers without subjects', function () {
     $teachers = collect(PeopleCatalog::teachers());
     $active = $teachers->whereNull('deactivated_at');
 
     expect($teachers->firstWhere('email', PeopleCatalog::DEMO_TEACHER_EMAIL)['subjects'])->toBe(['HEALTH', 'SCIENCE']);
-    expect($active->filter(fn (array $teacher): bool => $teacher['subjects'] === [])->keys()->all())->toBe(['aquino']);
+    expect($active->filter(fn (array $teacher): bool => $teacher['subjects'] === [])->keys()->all())->toBe(['bautista', 'aquino']);
     expect($active->reject(fn (array $teacher): bool => $teacher['subjects'] === [])->every(fn (array $teacher): bool => count($teacher['subjects']) <= 2))->toBeTrue();
     expect($teachers->whereNotNull('deactivated_at')->keys()->all())->toBe(['gutierrez']);
 
@@ -86,11 +86,10 @@ it('keeps the reserved family names out of the shared name pool', function () {
     expect(array_intersect(PeopleCatalog::BOY_NAMES, PeopleCatalog::GIRL_NAMES))->toBeEmpty();
 });
 
-it('holds Home Economics and PE in their own venues and other subjects in the homeroom', function (string $subject, string $room) {
+it('holds PE in its own venue and other subjects in the homeroom', function (string $subject, string $room) {
     expect(PeopleCatalog::roomFor($subject, 'Narra'))->toBe($room);
 })->with([
     'Health' => ['HEALTH', 'Room 201'],
     'Science' => ['SCIENCE', 'Room 201'],
-    'EPP – Home Economics' => ['EPP-HE', 'Home Economics Room'],
     'Physical Education' => ['PE', 'Covered Court'],
 ]);

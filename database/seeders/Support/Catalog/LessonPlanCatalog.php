@@ -139,36 +139,6 @@ final class LessonPlanCatalog
                 'Compute the harvest of each group.',
                 'Donate the harvest to the school feeding program.',
             ], align: false),
-            self::plan('bautista', 'EPP-HE', 5, 1, 2, 'EPP5HE-Ia-1', 'Safety and Hygiene in the Kitchen', [
-                'Practice proper handwashing before preparing food.',
-                'Handle knives and other kitchen tools safely.',
-                'Keep the kitchen clean and free of hazards.',
-            ]),
-            self::plan('bautista', 'EPP-HE', 5, 2, 3, 'EPP5HE-IIb-3', 'Preparing a Healthy Breakfast', [
-                'Explain why breakfast is important.',
-                'Plan a breakfast with Go, Grow and Glow foods.',
-                'Prepare a simple breakfast safely.',
-            ]),
-            self::plan('bautista', 'EPP-HE', 5, 2, 9, 'EPP5HE-IId-4', 'Packing a Healthy Baon', [
-                'Plan a balanced and affordable baon.',
-                'Pack baon in clean, safe containers.',
-                'Choose dishes that do not spoil quickly.',
-            ]),
-            self::plan('bautista', 'EPP-HE', 6, 1, 3, 'EPP6HE-Ia-1', 'Planning Meals for the Family', [
-                'Plan balanced meals for a family of five.',
-                'Use foods in season to save money.',
-                'Write a weekly menu.',
-            ]),
-            self::plan('bautista', 'EPP-HE', 6, 2, 5, 'EPP6HE-IIb-2', 'Shopping Wisely at the Palengke', [
-                'Prepare a market list from a weekly menu.',
-                'Choose fresh fish, meat and vegetables.',
-                'Check the labels and condition of packaged goods.',
-            ]),
-            self::plan('bautista', 'EPP-HE', 6, 2, 12, 'EPP6HE-IIe-4', 'Cooking Ginisang Monggo', [
-                'Follow a recipe for ginisang monggo.',
-                'Cook with less salt and oil.',
-                'Serve and store the dish safely.',
-            ], align: false),
             self::plan('mendoza', 'PE', 5, 1, 2, 'PE5PF-Ib-1', 'Energy In and Energy Out', [
                 'Explain energy balance.',
                 'Identify activities that use a lot of energy.',
@@ -214,11 +184,6 @@ final class LessonPlanCatalog
                 'Apply the four steps to food safety.',
                 'Store leftovers safely.',
             ], align: false),
-            self::plan('fernandez', 'EPP-HE', 6, 2, 9, 'EPP6HE-IIe-4', 'Healthy Cooking Methods', [
-                'Compare healthy and less healthy cooking methods.',
-                'Cook a dish with less salt and oil.',
-                'Practice safe food handling while cooking.',
-            ]),
         ];
     }
 

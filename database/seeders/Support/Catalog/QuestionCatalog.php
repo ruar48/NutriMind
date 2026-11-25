@@ -27,8 +27,6 @@ final class QuestionCatalog
             ...self::healthSix(),
             ...self::scienceFive(),
             ...self::scienceSix(),
-            ...self::homeEconomicsFive(),
-            ...self::homeEconomicsSix(),
             ...self::physicalEducation(),
         ];
     }
@@ -330,85 +328,6 @@ final class QuestionCatalog
                 'The heart is the pump of the circulatory system.', bank: false),
             self::trueFalse('S6LT-IIg-3', 'santos', 'medium', 'Most vegetable plants need several hours of direct sunlight every day to grow well.', true,
                 'Vegetables need plenty of sunlight to make food; choose a sunny spot for the garden.', bank: false),
-        ];
-    }
-
-    /**
-     * Grade 5 EPP – Home Economics questions.
-     *
-     * @return list<array<string, mixed>>
-     */
-    private static function homeEconomicsFive(): array
-    {
-        return [
-            self::choice('EPP5HE-Ia-1', 'bautista', 'easy', 'What should you do first before preparing food?',
-                ['Wash your hands with soap and water', 'Taste the ingredients', 'Turn on the stove', 'Wipe your hands on your shirt'],
-                'Washing your hands with soap and water for at least 20 seconds removes germs before you touch food.', shared: true),
-            self::choice('EPP5HE-Ia-1', 'bautista', 'medium', 'How should you carry a knife in the kitchen?',
-                ['With the tip pointing down, close to your side', 'With the blade pointing up', 'By tossing it to a classmate', 'In your pocket'],
-                'Carry a knife with the tip pointing down and close to your side so it cannot hurt anyone.', shared: true),
-            self::trueFalse('EPP5HE-Ia-1', 'bautista', 'easy', 'Spills on the kitchen floor should be wiped up right away to prevent slipping.', true,
-                'Wet floors cause falls, so wipe spills immediately.'),
-            self::choice('EPP5HE-IIb-3', 'bautista', 'easy', 'Why is breakfast called the most important meal of the day?',
-                ['It gives energy and helps you focus in class', 'It makes you sleepy in school', 'It replaces lunch and dinner', 'It is always the sweetest meal'],
-                'After a night without food, breakfast refuels the body and brain for learning and play.', shared: true),
-            self::choice('EPP5HE-IIb-3', 'bautista', 'medium', 'Which breakfast has Go, Grow and Glow foods?',
-                ['Pandesal, a boiled egg and a slice of papaya', 'Two cups of coffee', 'A bowl of sugary cereal only', 'Chocolate cake and soda'],
-                'Pandesal (Go), egg (Grow) and papaya (Glow) make a balanced breakfast.'),
-            self::identification('EPP5HE-IIb-3', 'bautista', 'medium', 'Champorado is a Filipino breakfast made from rice that gives us energy. What food group is it?',
-                ['Go food', 'Go foods', 'Go'], ['Grow food', 'Glow food', 'Grow'],
-                'Champorado is made from glutinous rice, a Go food that gives energy. Add milk for a Grow food.'),
-            self::choice('EPP5HE-IId-4', 'bautista', 'medium', 'Which baon is the healthiest and most balanced?',
-                ['Rice, chicken adobo, steamed vegetables and a banana', 'Instant noodles and a soft drink', 'Chips and a chocolate bar', 'White bread with sugar spread'],
-                'A balanced baon has Go, Grow and Glow foods: rice, chicken, vegetables and fruit.', shared: true),
-            self::trueFalse('EPP5HE-IId-4', 'bautista', 'medium', 'Dishes cooked with gata (coconut milk) spoil quickly in the heat, so they are not ideal for baon on a hot day.', true,
-                'Coconut milk dishes spoil quickly at room temperature. Choose drier dishes for baon on hot days.'),
-            self::trueFalse('EPP5HE-Ia-1', 'bautista', 'medium', 'Pot handles should point outward, away from the stove, so they are easy to grab.', false,
-                'Turn pot handles inward so no one bumps them and spills hot food.', bank: false),
-            self::choice('EPP5HE-IId-4', 'bautista', 'easy', 'What is the best drink to pack with your baon?',
-                ['Water in a clean, reusable bottle', 'A can of soft drink', 'Sweetened powdered juice', 'Iced coffee'],
-                'Water keeps you hydrated without added sugar, and a reusable bottle reduces waste.', bank: false),
-        ];
-    }
-
-    /**
-     * Grade 6 EPP – Home Economics questions.
-     *
-     * @return list<array<string, mixed>>
-     */
-    private static function homeEconomicsSix(): array
-    {
-        return [
-            self::choice('EPP6HE-Ia-1', 'bautista', 'medium', 'Why is it wise to use fruits and vegetables that are in season when planning family meals?',
-                ['They are usually cheaper and fresher', 'They have no vitamins', 'They are always imported', 'They take longer to cook'],
-                'Foods in season are plentiful, so they are usually cheaper, fresher and tastier.', shared: true),
-            self::choice('EPP6HE-Ia-1', 'fernandez', 'medium', 'Which meal follows the Pinggang Pinoy guide?',
-                ['Rice, grilled fish, ginisang gulay and a slice of watermelon', 'Fried rice, fried chicken and French fries', 'Spaghetti, hotdog and soft drink', 'Bread, butter and jam'],
-                'This meal has a Go food, a Grow food, plenty of vegetables and a fruit, served with water.', shared: true),
-            self::trueFalse('EPP6HE-Ia-1', 'bautista', 'easy', 'A meal plan helps a family save money and eat a variety of healthy food.', true,
-                'Planning meals avoids impulse buying and makes sure the family eats from all food groups.'),
-            self::choice('EPP6HE-IIb-2', 'bautista', 'medium', 'Which is a sign that a fish is fresh?',
-                ['Bright, clear eyes and red gills', 'Cloudy, sunken eyes', 'A strong, sour smell', 'Soft flesh that stays dented when pressed'],
-                'Fresh fish has bright, clear eyes, red gills, firm flesh and a mild sea smell.', shared: true),
-            self::choice('EPP6HE-IIb-2', 'bautista', 'easy', 'Which canned good should you NOT buy?',
-                ['A can that is bulging or badly dented', 'A can with a clear label', 'A can with a far expiration date', 'A can that is clean and sealed'],
-                'Bulging or badly dented cans may contain harmful bacteria. Leave them on the shelf.'),
-            self::trueFalse('EPP6HE-IIb-2', 'fernandez', 'medium', 'Making a market list before going to the palengke helps you avoid buying things you do not need.', true,
-                'A market list keeps shopping within the budget and the meal plan.'),
-            self::choice('EPP6HE-IIe-4', 'bautista', 'medium', 'Which cooking method uses the least oil?',
-                ['Steaming', 'Deep-frying', 'Pan-frying in lots of oil', 'Making tempura'],
-                'Steaming cooks food with hot water vapor and needs no oil at all.', shared: true),
-            self::identification('EPP6HE-IIe-4', 'fernandez', 'medium', 'Ginisang monggo is made from mung beans. What food group are mung beans?',
-                ['Grow food', 'Grow foods', 'Grow'], ['Go food', 'Glow food', 'Go'],
-                'Mung beans are rich in protein, so they are a Grow food.', shared: true, reviewed: false),
-            self::identification('EPP6HE-Ia-1', 'fernandez', 'medium', 'What do you call a written plan of the dishes a family will serve for the week?',
-                ['Menu', 'Meal plan', 'Weekly menu', 'Menu plan'], ['Recipe', 'Market list', 'Budget'],
-                'A weekly menu, or meal plan, lists the dishes for each meal of the week.', bank: false),
-            self::choice('EPP6HE-IIb-2', 'bautista', 'medium', 'Why should you buy cold and frozen foods last when shopping?',
-                ['So they stay cold until you get home', 'Because they are the cheapest', 'Because they are the heaviest', 'So the store can restock them'],
-                'Buying cold foods last keeps them out of the temperature danger zone for a shorter time.', bank: false),
-            self::trueFalse('EPP6HE-IIe-4', 'fernandez', 'easy', 'Leftovers should be covered and refrigerated within two hours after cooking.', true,
-                'Bacteria grow quickly at room temperature, so refrigerate leftovers within two hours.', bank: false),
         ];
     }
 

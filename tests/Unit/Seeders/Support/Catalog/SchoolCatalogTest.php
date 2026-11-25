@@ -40,13 +40,12 @@ it('describes a plausible Philippine public school', function () {
     expect(mb_strlen($profile['announcement']))->toBeLessThanOrEqual(500);
 });
 
-it('colors and labels the four subjects, with EPP – Home Economics coded EPP-HE', function () {
+it('colors and labels the three subjects', function () {
     $subjects = SchoolCatalog::subjects();
     $palette = ['leaf', 'carrot', 'sun', 'berry', 'grape', 'sky', 'teal', 'lime', 'pink', 'indigo', 'slate'];
     $icons = require dirname(__DIR__, 4).'/Fixtures/icon-names.php';
 
-    expect(array_keys($subjects))->toBe(['HEALTH', 'SCIENCE', 'EPP-HE', 'PE']);
-    expect($subjects['EPP-HE']['name'])->toBe('EPP – Home Economics');
+    expect(array_keys($subjects))->toBe(['HEALTH', 'SCIENCE', 'PE']);
 
     foreach ($subjects as $code => $subject) {
         expect($code)->toMatch('/^[A-Z0-9-]{1,20}$/');

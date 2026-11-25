@@ -13,7 +13,7 @@ it('writes lesson plans only for subjects the teacher is assigned', function () 
         expect($plan['objectives'])->toHaveCount(3);
     }
 
-    expect(LessonPlanCatalog::plans())->toHaveCount(40);
+    expect(LessonPlanCatalog::plans())->toHaveCount(33);
 });
 
 it('links plans to modules of the same subject and grade and copies their competency code', function () {
@@ -41,7 +41,7 @@ it('leaves some plans unaligned to show every coverage status', function () {
     expect($unmapped)->toHaveCount(2);
     expect($unpublishedModule)->toHaveCount(2);
     expect($unpublishedModule->every(fn (array $plan): bool => ! $plan['align']))->toBeTrue();
-    expect($plans->where('align', true)->count())->toBe(30);
+    expect($plans->where('align', true)->count())->toBe(24);
 });
 
 it('gives every teacher distinct plan titles', function () {

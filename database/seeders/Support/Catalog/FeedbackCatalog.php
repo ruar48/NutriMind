@@ -15,7 +15,7 @@ final class FeedbackCatalog
      *
      * @var array<string, int>
      */
-    public const MESSAGES_PER_TEACHER = ['santos' => 52, 'villanueva' => 22, 'bautista' => 16, 'mendoza' => 31, 'fernandez' => 29];
+    public const MESSAGES_PER_TEACHER = ['santos' => 56, 'villanueva' => 26, 'mendoza' => 36, 'fernandez' => 32];
 
     /**
      * The messages for each feedback type.

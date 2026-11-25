@@ -33,7 +33,7 @@ it('plans quizzes of eight to twelve questions due within the last eight weeks a
         expect($quiz['due'])->toBeGreaterThanOrEqual(-56)->toBeLessThanOrEqual(15);
     }
 
-    expect($quizzes->countBy('status')->all())->toBe(['closed' => 15, 'published' => 30, 'draft' => 5]);
+    expect($quizzes->countBy('status')->all())->toBe(['closed' => 12, 'published' => 25, 'draft' => 4]);
 });
 
 it('keeps drafts out of the past and published quizzes reviewed', function () {
@@ -42,7 +42,7 @@ it('keeps drafts out of the past and published quizzes reviewed', function () {
     expect($quizzes->where('status', 'draft')->every(fn (array $quiz): bool => $quiz['due'] > 0))->toBeTrue();
     expect($quizzes->where('status', 'closed')->every(fn (array $quiz): bool => $quiz['due'] < -28))->toBeTrue();
     expect($quizzes->where('status', '!=', 'draft')->every(fn (array $quiz): bool => $quiz['reviewed'] && $quiz['assigned']))->toBeTrue();
-    expect($quizzes->where('status', 'draft')->where('reviewed', false))->toHaveCount(3);
+    expect($quizzes->where('status', 'draft')->where('reviewed', false))->toHaveCount(2);
     expect($quizzes->where('assigned', false)->pluck('title')->all())->toBe(['Science 6 Long Test']);
 });
 

@@ -221,7 +221,7 @@ final class PeopleCatalog
             ],
             'bautista' => [
                 'name' => 'Rowena C. Bautista', 'email' => 'rowena.bautista@nutrimind.test', 'phone' => '09271230004',
-                'subjects' => ['EPP-HE'], 'created_on' => '2026-05-11', 'last_login' => 1.6, 'deactivated_at' => null,
+                'subjects' => [], 'created_on' => '2026-05-11', 'last_login' => 1.6, 'deactivated_at' => null,
             ],
             'mendoza' => [
                 'name' => 'Arnel B. Mendoza', 'email' => 'arnel.mendoza@nutrimind.test', 'phone' => '09351230005',
@@ -229,7 +229,7 @@ final class PeopleCatalog
             ],
             'fernandez' => [
                 'name' => 'Liza M. Fernandez', 'email' => 'liza.fernandez@nutrimind.test', 'phone' => '09451230006',
-                'subjects' => ['HEALTH', 'EPP-HE'], 'created_on' => '2026-05-12', 'last_login' => 2.8, 'deactivated_at' => null,
+                'subjects' => ['HEALTH'], 'created_on' => '2026-05-12', 'last_login' => 2.8, 'deactivated_at' => null,
             ],
             'aquino' => [
                 'name' => 'Dennis R. Aquino', 'email' => 'dennis.aquino@nutrimind.test', 'phone' => '09561230007',
@@ -260,7 +260,6 @@ final class PeopleCatalog
         $plan = [
             ['Sampaguita', 'HEALTH', 'santos', LearningMode::LearnerChoice],
             ['Sampaguita', 'SCIENCE', 'santos', LearningMode::Automatic],
-            ['Sampaguita', 'EPP-HE', 'bautista', LearningMode::Manual],
             ['Sampaguita', 'PE', 'mendoza', LearningMode::Automatic],
             ['Ilang-Ilang', 'HEALTH', 'santos', LearningMode::Automatic],
             ['Ilang-Ilang', 'SCIENCE', 'villanueva', LearningMode::Automatic],
@@ -269,10 +268,8 @@ final class PeopleCatalog
             ['Gumamela', 'SCIENCE', 'villanueva', LearningMode::Automatic],
             ['Narra', 'HEALTH', 'santos', LearningMode::Automatic],
             ['Narra', 'SCIENCE', 'santos', LearningMode::Manual],
-            ['Narra', 'EPP-HE', 'bautista', LearningMode::Automatic],
             ['Molave', 'HEALTH', 'mendoza', LearningMode::Automatic],
             ['Molave', 'SCIENCE', 'villanueva', LearningMode::LearnerChoice],
-            ['Molave', 'EPP-HE', 'fernandez', LearningMode::Automatic],
             ['Mahogany', 'HEALTH', 'fernandez', LearningMode::Automatic],
             ['Mahogany', 'PE', 'mendoza', LearningMode::Manual],
         ];
@@ -304,12 +301,11 @@ final class PeopleCatalog
     }
 
     /**
-     * Get the room of a classroom: Home Economics and PE have their own venues, other subjects use the homeroom.
+     * Get the room of a classroom: PE has its own venue, other subjects use the homeroom.
      */
     public static function roomFor(string $subjectCode, string $section): string
     {
         return match ($subjectCode) {
-            'EPP-HE' => 'Home Economics Room',
             'PE' => 'Covered Court',
             default => self::SECTIONS[$section]['room'],
         };
