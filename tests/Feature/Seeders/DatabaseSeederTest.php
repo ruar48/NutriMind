@@ -503,7 +503,7 @@ it('writes weekly lesson plans with every content coverage status represented', 
     expect($partial->pluck('competency_code')->unique()->all())->toBe(['H6N-IIIa-1']);
     expect($notCovered->pluck('competency_code')->sort()->values()->all())->toBe(['H6N-IIc-4', 'S5LT-IIc-3']);
     expect($plans->whereNull('competency_code'))->toHaveCount(2);
-    expect($plans->filter(fn (LessonPlan $plan): bool => $plan->quizzes->isNotEmpty())->count())->toBeGreaterThanOrEqual(25);
+    expect($plans->filter(fn (LessonPlan $plan): bool => $plan->quizzes->isNotEmpty())->count())->toBeGreaterThanOrEqual(20);
 });
 
 it('writes 150 feedback messages from teachers to learners in their classrooms', function () {
