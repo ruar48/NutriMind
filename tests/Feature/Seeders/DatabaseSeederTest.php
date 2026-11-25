@@ -200,8 +200,8 @@ it('publishes the game content: modules with activities, missions and rewards', 
     expect($modules)->toHaveCount(18);
     expect($modules->where('is_published', false)->pluck('competency_code')->all())->toBe(['H6N-IIIa-1']);
     expect($modules->every(fn (LearningModule $module): bool => $module->activities_count >= 3 && $module->activities_count <= 6))->toBeTrue();
-    expect(LearningActivity::query()->count())->toBe(99);
-    expect(Mission::query()->count())->toBe(25);
+    expect(LearningActivity::query()->count())->toBe(74);
+    expect(Mission::query()->count())->toBe(21);
     expect(Reward::query()->count())->toBe(14);
 
     foreach (LearningActivity::query()->get() as $activity) {
@@ -499,7 +499,7 @@ it('writes weekly lesson plans with every content coverage status represented', 
     $partial = $plans->filter(fn (LessonPlan $plan): bool => isset($moduleCodes[$plan->competency_code]) && $moduleCodes[$plan->competency_code]->activities_count === 0);
     $notCovered = $plans->filter(fn (LessonPlan $plan): bool => $plan->competency_code !== null && ! isset($moduleCodes[$plan->competency_code]));
 
-    expect($covered->count())->toBe(30);
+    expect($covered->count())->toBe(24);
     expect($partial->pluck('competency_code')->unique()->all())->toBe(['H6N-IIIa-1']);
     expect($notCovered->pluck('competency_code')->sort()->values()->all())->toBe(['H6N-IIc-4', 'S5LT-IIc-3']);
     expect($plans->whereNull('competency_code'))->toHaveCount(2);
