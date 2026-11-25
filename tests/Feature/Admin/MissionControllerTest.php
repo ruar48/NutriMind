@@ -171,6 +171,33 @@ describe('create', function () {
             ->is_active->toBeTrue();
     });
 
+    it('offers the game missions and the game world of each subject for the game mission ID', function () {
+        $health = Subject::factory()->create(['code' => 'HEALTH']);
+        $pe = Subject::factory()->create(['code' => 'PE']);
+        $science = Subject::factory()->create(['code' => 'SCIENCE']);
+        $math = Subject::factory()->create(['code' => 'MATH']);
+        Mission::factory()->create(['game_key' => 'G5-PEH-M1']);
+
+        $response = $this->actingAs(User::factory()->admin()->create())->get(route('admin.missions.create'));
+
+        $response->assertOk()->assertSeeText('Growing Well, Playing Together');
+        expect($response->viewData('gameSubjectWorlds'))->toBe([$health->id => 'PEH', $pe->id => 'PEH', $science->id => 'SCI'])
+            ->not->toHaveKey($math->id);
+
+        $gameMissions = collect($response->viewData('gameMissions'));
+        expect($gameMissions)->toHaveCount(18)
+            ->and($gameMissions->where('world', 'PEH')->where('grade', 5)->pluck('taken', 'key')->all())
+            ->toBe(['G5-PEH-M1' => true, 'G5-PEH-M2' => false, 'G5-PEH-M3' => false]);
+    });
+
+    it('does not count the edited mission\'s own game mission ID as used', function () {
+        $mission = Mission::factory()->create(['game_key' => 'G6-SCI-M2']);
+
+        $response = $this->actingAs(User::factory()->admin()->create())->get(route('admin.missions.edit', $mission));
+
+        expect(collect($response->viewData('gameMissions'))->firstWhere('key', 'G6-SCI-M2')['taken'])->toBeFalse();
+    });
+
     it('starts the mission inside the given module', function () {
         $module = LearningModule::factory()->create(['grade_level' => GradeLevel::Six]);
 

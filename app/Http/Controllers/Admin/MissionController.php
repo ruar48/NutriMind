@@ -108,6 +108,7 @@ class MissionController extends Controller
             'subjectOptions' => $this->subjectOptions(),
             'modules' => $this->moduleChoices(),
             'startingModule' => $module,
+            ...$this->gameMissionChoices($mission),
         ]);
     }
 
@@ -131,6 +132,7 @@ class MissionController extends Controller
             'subjectOptions' => $this->subjectOptions($mission),
             'modules' => $this->moduleChoices(),
             'startingModule' => null,
+            ...$this->gameMissionChoices($mission),
         ]);
     }
 
@@ -175,6 +177,49 @@ class MissionController extends Controller
             ->mapWithKeys(fn (Subject $subject): array => [
                 $subject->getKey() => $subject->is_active ? $subject->name : $subject->name.' (inactive)',
             ]);
+    }
+
+    /**
+     * Get what the form needs to suggest a game mission ID: the game's missions (marking those another mission
+     * already uses) and the game world each subject belongs to.
+     *
+     * @return array{gameMissions: list<array{key: string, title: string, world: string, grade: int, number: int, taken: bool}>, gameSubjectWorlds: array<int, string>}
+     */
+    private function gameMissionChoices(Mission $mission): array
+    {
+        $taken = Mission::query()
+            ->whereNotNull('game_key')
+            ->when($mission->exists, fn (Builder $query) => $query->whereKeyNot($mission->getKey()))
+            ->pluck('game_key')
+            ->flip();
+
+        $gameMissions = collect(config('nutrimind.game.missions'))
+            ->map(function (string $title, string $key) use ($taken): array {
+                [$grade, $world, $number] = explode('-', $key);
+
+                return [
+                    'key' => $key,
+                    'title' => $title,
+                    'world' => $world,
+                    'grade' => (int) substr($grade, 1),
+                    'number' => (int) substr($number, 1),
+                    'taken' => $taken->has($key),
+                ];
+            })
+            ->sortBy([['grade', 'asc'], ['world', 'asc'], ['number', 'asc']])
+            ->values()
+            ->all();
+
+        $worldByCode = collect(config('nutrimind.game.worlds'))
+            ->flatMap(fn (array $codes, string $world): array => array_fill_keys($codes, $world));
+
+        $gameSubjectWorlds = Subject::query()
+            ->whereIn('code', $worldByCode->keys())
+            ->pluck('code', 'id')
+            ->map(fn (string $code): string => $worldByCode[$code])
+            ->all();
+
+        return ['gameMissions' => $gameMissions, 'gameSubjectWorlds' => $gameSubjectWorlds];
     }
 
     /**

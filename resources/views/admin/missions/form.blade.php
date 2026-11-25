@@ -14,7 +14,17 @@
         ]))"
     />
 
-    <form method="POST" action="{{ $isEditing ? route('admin.missions.update', $mission) : route('admin.missions.store') }}" class="flex flex-col gap-8" data-submit-once data-animate style="--stagger: 1">
+    <form
+        method="POST"
+        action="{{ $isEditing ? route('admin.missions.update', $mission) : route('admin.missions.store') }}"
+        class="flex flex-col gap-8"
+        data-submit-once
+        data-animate
+        style="--stagger: 1"
+        data-mission-game-key
+        data-game-missions='@json($gameMissions)'
+        data-game-subject-worlds='@json((object) $gameSubjectWorlds)'
+    >
         @csrf
         @if ($isEditing)
             @method('PUT')
@@ -45,7 +55,27 @@
             >
                 <x-content.module-options :modules="$modules" :selected="old('learning_module_id', $mission->learning_module_id)" />
             </x-form.select>
-            <x-form.input name="game_key" label="Game mission ID" :value="$mission->game_key" maxlength="40" prefix-icon="gamepad-2" placeholder="e.g. G5-ENG-M1" hint="The mission’s ID inside the Unity game. Progress from the game reaches this mission only when it is set." optional class="col-span-full" />
+            <div class="col-span-full flex flex-col gap-1.5">
+                <x-form.input
+                    name="game_key"
+                    label="Game mission ID"
+                    :value="$mission->game_key"
+                    maxlength="40"
+                    prefix-icon="gamepad-2"
+                    placeholder="e.g. G5-ENG-M1"
+                    hint="Filled in from the subject and grade with the next game mission no other mission uses. Progress from the game reaches this mission only when it is set."
+                    optional
+                    list="game-mission-choices"
+                    autocomplete="off"
+                    data-game-key-input
+                />
+                <datalist id="game-mission-choices">
+                    @foreach ($gameMissions as $gameMission)
+                        <option value="{{ $gameMission['key'] }}">{{ $gameMission['title'] }}{{ $gameMission['taken'] ? ' (already used)' : '' }}</option>
+                    @endforeach
+                </datalist>
+                <x-form.hint data-game-key-status aria-live="polite" hidden class="font-medium text-ink-700 dark:text-ink-200" />
+            </div>
         </x-form.section>
 
         <x-form.section title="Reward and schedule" description="Points are added to the learner’s XP when they complete the mission." columns="2">

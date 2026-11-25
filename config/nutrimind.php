@@ -79,6 +79,36 @@ return [
         'checkpoints_per_mission' => 3,
         'questions_per_checkpoint' => 5,
         'points_per_correct_answer' => 10,
+
+        // The game's worlds and the subject codes each one teaches: the admin mission form uses them to suggest
+        // a "Game mission ID" (G{grade}-{world}-M{number}) for the chosen subject and grade.
+        'worlds' => [
+            'ENG' => ['ENGLISH'],
+            'SCI' => ['SCIENCE'],
+            'PEH' => ['PE', 'HEALTH'],
+        ],
+
+        // Every mission in the game (Assets/Resources/Content/*.json): game mission ID => title.
+        'missions' => [
+            'G5-ENG-M1' => 'The Golden Lantern Adventure',
+            'G5-ENG-M2' => 'The Chronicles of Wisdom',
+            'G5-ENG-M3' => 'The Explorer’s Atlas',
+            'G6-ENG-M1' => 'The Critical Reader Quest',
+            'G6-ENG-M2' => 'The Persuasion Investigator',
+            'G6-ENG-M3' => 'The Evidence-Based Communicator',
+            'G5-SCI-M1' => 'The Missing Matter Museum',
+            'G5-SCI-M2' => 'The Nature Rescue Expedition',
+            'G5-SCI-M3' => 'The Power of Earth and Sky',
+            'G6-SCI-M1' => 'The Materials Investigation',
+            'G6-SCI-M2' => 'The Ecosystem Engineering Quest',
+            'G6-SCI-M3' => 'The Sky and Safety Expedition',
+            'G5-PEH-M1' => 'Strong Mind, Smart Moves',
+            'G5-PEH-M2' => 'Growing Well, Playing Together',
+            'G5-PEH-M3' => 'Safe Choices, Active Rhythms',
+            'G6-PEH-M1' => 'Whole-Self Wellness Challenge',
+            'G6-PEH-M2' => 'Healthy Decisions and Game Strategy',
+            'G6-PEH-M3' => 'Healthy Community, Active Environment',
+        ],
     ],
 
 ];
